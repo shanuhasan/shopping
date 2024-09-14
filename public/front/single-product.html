@@ -1,0 +1,659 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>ANB Shopping</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+		
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css" rel="stylesheet" />
+		<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+		<!-- Bootstrap  -->
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+
+		<!-- Fancybox Popup -->
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+		<!-- Owl Carousel -->
+		<link rel="stylesheet" href="css/owl.carousel.min.css">
+		<link rel="stylesheet" href="css/owl.theme.default.min.css">
+		
+		<!-- Date Picker -->
+		<link rel="stylesheet" href="css/bootstrap-datepicker.css">
+
+		<!-- Theme style  -->
+		<link rel="stylesheet" href="css/style.css">
+	</head>
+	<body>
+		
+	<div class="colorlib-loader"></div>
+
+	<div id="page">
+		<div class="top-bar">
+			<div class="container">
+				<div class="d-flex align-items-center">
+					<!-- Language -->
+					<ul class="list-inline mb-0">
+						<li class="list-inline-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+								EN
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#">Option 1</a>
+								<a class="dropdown-item" href="#">Option 2</a>
+								<a class="dropdown-item" href="#">Option 3</a>
+							</div>
+						</li>
+						<li class="list-inline-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+								USD
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#">Option 1</a>
+								<a class="dropdown-item" href="#">Option 2</a>
+								<a class="dropdown-item" href="#">Option 3</a>
+							</div>
+						</li>
+					</ul>
+					<!-- End Language -->
+					<ul class="list-inline ml-auto mb-0">
+						<li class="list-inline-item">
+							<a href="#" class="nav-link"><i class="fa fa-user"></i> My Profile</a>
+						</li>
+						<!-- Shopping Cart -->
+						<li class="list-inline-item dropdown mini-cart">
+							<a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown"><i class="fa fa-shopping-basket"></i>
+								0 Items <span class="text-muted">$0.00</span>
+							</a>
+							<div class="dropdown-menu dropdown-menu-right">
+								<div class="p-3 py-md-5 text-center">
+									<span class="fa fa-shopping-basket mb-3"></span>
+									<span class="d-block">Your Cart is Empty</span>
+								</div>
+							</div>
+						</li>
+						<!-- End Shopping Cart -->
+						<li class="list-inline-item">
+							<a href="#" class="nav-link"><i class="fa fa-search"></i></a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<header class="header" id="header">
+		    <div class="container">
+		        <nav class="navbar navbar-expand-lg justify-content-between">
+					<a class="navbar-brand" href="index.html">
+						<img src="images/logo.svg">
+					</a>
+					<div class="collapse navbar-collapse primary-menu">
+						<ul class="navbar-nav">
+							<li class="nav-item active">
+								<a class="nav-link" href="index.html">Home</a>
+							</li>
+							<li class="nav-item mega-menu">
+								<a class="nav-link" href="categories.html">Categories</a>
+								<ul class="sub-mega-menu">
+									<div class="p-4 w-100">
+	                                    <div class="row">
+	                                        <div class="col-lg-5">
+	                                            <ul class="list-inline">
+	                                                <li class="menu-title">Category</li>
+	                                                <div class="row">
+	                                                	<div class="col-6">
+	                                                		<ul class="list-inline">
+				                                                <li><a href="#">AirPort & Wireless</a></li>
+				                                                <li><a href="#">AppleCare</a></li>
+				                                                <li><a href="#">Bags, Shells & Sleeves</a></li>
+				                                                <li><a href="#">Business & Security</a></li>
+				                                                <li><a href="#">Cables & Docks</a></li>
+				                                            </ul>
+				                                        </div>
+	                                                	<div class="col-6">
+	                                                		<ul class="list-inline">
+				                                                <li><a href="#">Cameras & Video</a></li>
+				                                                <li><a href="#">Car & Travel</a></li>
+				                                                <li><a href="#">Cases & Films</a></li>
+				                                            </ul>
+				                                        </div>
+				                                    </div>
+	                                            </ul>
+	                                        </div>
+	                                        <div class="col-lg-5">
+	                                            <ul class="list-inline">
+	                                                <li class="menu-title">Category</li>
+	                                                <div class="row">
+	                                                	<div class="col-6">
+	                                                		<ul class="list-inline">
+				                                                <li><a href="#">Charging Devices</a></li>
+				                                                <li><a href="#">Connected Home</a></li>
+				                                                <li><a href="#">Device Care</a></li>
+				                                                <li><a href="#">Display & Graphic</a></li>
+				                                                <li><a href="#">Fitness & Sport</a></li>
+				                                            </ul>
+				                                        </div>
+	                                                	<div class="col-6">
+	                                                		<ul class="list-inline">
+				                                                <li><a href="#">Headphones</a></li>
+				                                                <li><a href="#">HealhKit</a></li>
+				                                            </ul>
+				                                        </div>
+				                                    </div>
+	                                            </ul>
+	                                        </div>
+	                                        <div class="col-lg-2">
+	                                            <ul class="list-inline">
+	                                                <li class="menu-title">Category</li>
+	                                                <li><a href="#">Mice & Keyboards</a></li>
+	                                                <li><a href="#">Music Creation</a></li>
+	                                                <li><a href="#">Networking & Server</a></li>
+	                                            </ul>
+	                                        </div>
+	                                    </div>
+	                                </div>
+                        		</ul>
+							</li>
+							<li class="nav-item d-none d-xl-flex">
+								<input type="text" name="" placeholder="Search" class="">
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="blog.html">Join as vendor</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="products-grid.html">Join as deliver boy</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="why-zugard.html">Join as suvidha kendra</a>
+							</li>
+						</ul>
+					</div>
+				</nav>
+		    </div>
+		</header>
+		<div class="sub-header">
+			<div class="container">
+				<div class="d-flex align-items-center">
+					<ul class="list-inline mb-0">
+						<li class="list-inline-item">
+							<a class="nav-link" href="#">
+								<i class="fa fa-map-marker"></i> Hsr layout, sector 6, bangalore....
+							</a>
+						</li>
+					</ul>
+					<!-- End Language -->
+					<ul class="list-inline ml-auto mb-0 d-none d-lg-block">
+						<li class="list-inline-item">
+							<a href="#" class="nav-link"><i class="la la-percentage"></i> OFFERS</a>
+						</li>
+						<li class="list-inline-item">
+							<a href="#" class="nav-link">Cart</a>
+						</li>
+						<li class="list-inline-item">
+							<a href="#" class="nav-link">My Account</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<section class="breadcrumb-area">
+			<div class="container">
+				<div class="breadcrumb-content">
+					<ul>
+						<li><a href="index.html">Home</a></li>
+						<li><a href="product-grid.html">Accessories</a></li>
+						<li>Beat Solo2 on Ear Headphones - Black</li>
+					</ul>
+				</div>
+			</div>
+		</section>
+
+		<section class="pt-3 pb-4 pb-md-5">
+			<div class="container">
+				<div class="row product-detail">
+					<div class="col-lg-9">
+						<div class="row gutters-2">
+							<!-- First column -->
+							<div class="col-md-5">
+								<div id="slider" class="owl-carousel product-detail-slider">
+									<div class="item">
+										<img src="images/product-image.png" />
+									</div>
+									<div class="item">
+										<img src="images/product-image.png" />
+									</div>
+									<div class="item">
+										<img src="images/product-image.png" />
+									</div>
+									<div class="item">
+										<img src="images/product-image.png" />
+									</div>
+									<div class="item">
+										<img src="images/product-image.png" />
+									</div>
+									<div class="item">
+										<img src="images/product-image.png" />
+									</div>
+									<div class="item">
+										<img src="images/product-image.png" />
+									</div>
+								</div>
+							</div>
+							<div class="col-md-7">
+								<h2 class="h4">Beats Solo2 On Ear Headphones - Black</h2>
+								<div class="d-flex align-items-center small mb-2">
+				                    <div class="text-warning mr-2">
+				                        <small class="fa fa-star"></small>
+				                        <small class="fa fa-star"></small>
+				                        <small class="fa fa-star"></small>
+				                        <small class="fa fa-star"></small>
+				                        <small class="fa fa-star text-muted"></small>
+				                    </div>
+				                    <span class="js-go-to">0 Reviews</span>
+				                    <a class="js-go-to" href="#reviewSection" data-target="#reviewSection">Submit a review</a>
+				                </div>
+				                <hr>
+				                <div class="d-block h4">
+									<span class="fw-500 text-primary">$499</span><span class="text-secondary ml-2"><del>$599</del></span><small class="text-primary ml-4">Save 3%</small>
+								</div>
+								<table class="table table-borderless table-sm mb-0">
+									<tbody>
+										<tr>
+											<th>Availability:</th>
+											<td>In stock</td>
+										</tr>
+										<tr>
+											<th>Category:</th>
+											<td>Accessories</td>
+										</tr>
+										<tr>
+											<th colspan="2">Free shipping</th>
+										</tr>
+										<tr>
+											<th colspan="2" class="text-success">Made In INDIA</th>
+										</tr>
+									</tbody>
+								</table>
+								<hr>
+								<table class="table table-borderless table-sm mb-0">
+									<tbody>
+										<tr>
+											<th>Select Color:</th>
+											<td>
+												<div class="radio-color">
+				                                    <div class="radio">
+				                                        <label>
+				                                            <input type="radio" class="form-check-input" name="color" checked="">
+				                                            <i class="form-icon blue"></i>
+				                                        </label>
+				                                    </div>
+				                                    <div class="radio">
+				                                        <label>
+				                                            <input type="radio" class="form-check-input" name="color">
+				                                            <i class="form-icon red"></i>
+				                                        </label>
+				                                    </div>
+				                                    <div class="radio">
+				                                        <label>
+				                                            <input type="radio" class="form-check-input" name="color">
+				                                            <i class="form-icon black"></i>
+				                                        </label>
+				                                    </div>
+				                                    <div class="radio">
+				                                        <label>
+				                                            <input type="radio" class="form-check-input" name="color">
+				                                            <i class="form-icon yellow"></i>
+				                                        </label>
+				                                    </div>
+				                                </div>
+											</td>
+										</tr>
+										<tr>
+											<th>Size:</th>
+											<td>
+												<div class="d-flex align-items-center justify-content-between">
+													<!-- Select -->
+													<div class="dropdown w-100">
+														<select class="custom-select">
+															<option value="XS" selected="">XS</option>
+															<option value="SM">SM</option>
+															<option value="M">M</option>
+															<option value="L">L</option>
+															<option value="XL">XL</option>
+														</select>
+													</div>
+													<button type="button" class="btn btn-air-primary btn-sm ml-4"><i class="fa fa-heart-o px-1"></i></button>
+												</div>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+								<hr>
+								<div class="mt-3">
+									<div class="row gutters-1">
+										<div class="col-md-3">
+											<div class="quantity">
+					                            <form action="#" class="d-flex align-items-center justify-content-around">
+					                                <div class="qtyminus btn">-</div>
+					                                <input type="text" name="quantity" value="2" class="form-control qty">
+					                                <div class="qtyplus btn">+</div>
+					                            </form>
+					                        </div>
+					                    </div>
+					                    <div class="col-md-9">
+					                    	<div class="row gutters-1">
+							                    <div class="col-6">
+							                    	<button type="button" class="btn btn-air-primary btn-block"><i class="fa fa-shopping-cart mr-2"></i> Buy Now</button>
+							                    </div>
+							                    <div class="col-6">
+							                    	<button type="button" class="btn btn-air-primary btn-block"><i class="fa fa-shopping-cart mr-2"></i> Add to cart</button>
+							                    </div>
+							                </div>
+							            </div>
+					                </div>
+					            </div>
+					            <hr>
+					            <div class="row gutters-1">
+					            	<div class="col-sm-6">
+					            		<button type="button" class="btn btn-facebook btn-block"><i class="fa fa-facebook mr-2"></i> Share on Facebook</button>
+					            	</div>
+					            	<div class="col-sm-6 mt-2 mt-sm-0">
+					            		<button type="button" class="btn btn-twitter btn-block"><i class="fa fa-twitter mr-2"></i> Share on Twitter</button>
+					            	</div>
+					            </div>
+							</div>
+						</div>
+						<div class="mt-3">
+							<ul class="product-tab-list nav tab-border mt-5">
+								<li class="nav-item">
+									<a class="nav-link active" data-toggle="tab" href="#product_info">Product Information</a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link" data-toggle="tab" href="#reviews">Reviews <span class="text-muted">(0)</span></a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link" data-toggle="tab" href="#another">Another tab</a>
+								</li>
+							</ul>
+							<!-- Tab panes -->
+							<div class="tab-content mt-3">
+								<div class="tab-pane container active" id="product_info">
+									<p>Nunc facilisis sagittis ullamcorper. Proin lectus ipsum, gravida et mattis vulputate, tristique ut lectus. Sed et lorem nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aenean eleifend laoreet congue. Vivamus adipiscing nisl ut dolor dignissim semper. Nulla luctus malesuada tincidunt. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Integer enim purus, posuere at ultricies eu, placerat a felis. Suspendisse aliquet urna pretium eros convallis interdum. Quisque in arcu id dui vulputate mollis eget non arcu. Aenean et nulla purus. Mauris vel tellus non nunc mattis lobortis.</p>
+									<p>Nunc facilisis sagittis ullamcorper. Proin lectus ipsum, gravida et mattis vulputate, tristique ut lectus. Sed et lorem nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae.</p>
+								</div>
+								<div class="tab-pane container active" id="reviews">
+								</div>
+								<div class="tab-pane container active" id="another">
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-3">
+					</div>
+				</div>
+			</div>
+		</section>
+		<section class="py-4 py-md-5">
+			<div class="container">
+				<div class="text-center">
+					<h3 class="text-uppercase">Related Products</h3>
+				</div>
+				<div class="products">
+					<div class="row gutters-2">
+						<div class="col-md-6 col-lg-3 mb-4">
+							<!-- Product -->
+							<div class="product-block text-center h-100">
+								<div class="position-relative">
+									<img class="product-thumb" src="images/product-thumb.png" alt="Image Description">
+									<div class="offer">
+										<span class="badge badge-primary">HOT</span>
+									</div>
+									<div class="hover-content">
+										<button type="button" class="btn btn-outline-primary rounded-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Save for later">
+										<span class="fa fa-heart"></span>
+										</button>
+										<button type="button" class="btn btn-outline-primary rounded-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Add to cart">
+										<span class="fa fa-shopping-cart"></span>
+										</button>
+									</div>
+								</div>
+								<div class="product-body pt-3 px-3 pb-0">
+									<div class="mb-2">
+										<a href="single-product.html" class="product-title">Apple Macbook Pro</a>
+										<div class="my-1 small">
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-muted"></small>
+										</div>
+										<div class="d-block">
+											<span class="fw-500 text-primary">$499</span><span class="text-secondary ml-2"><del>$599</del></span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!-- End Product -->
+						</div>
+						<div class="col-md-6 col-lg-3 mb-4">
+							<!-- Product -->
+							<div class="product-block text-center h-100">
+								<div class="position-relative">
+									<img class="product-thumb" src="images/product-thumb.png" alt="Image Description">
+									<div class="hover-content">
+										<button type="button" class="btn btn-outline-primary rounded-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Save for later">
+										<span class="fa fa-heart"></span>
+										</button>
+										<button type="button" class="btn btn-outline-primary rounded-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Add to cart">
+										<span class="fa fa-shopping-cart"></span>
+										</button>
+									</div>
+								</div>
+								<div class="product-body pt-3 px-3 pb-0">
+									<div class="mb-2">
+										<a href="single-product.html" class="product-title">Apple Macbook Pro</a>
+										<div class="my-1 small">
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-muted"></small>
+										</div>
+										<div class="d-block">
+											<span class="fw-500 text-primary">$499</span><span class="text-secondary ml-2"><del>$599</del></span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!-- End Product -->
+						</div>
+						<div class="col-md-6 col-lg-3 mb-4">
+							<!-- Product -->
+							<div class="product-block text-center h-100">
+								<div class="position-relative">
+									<img class="product-thumb" src="images/product-thumb.png" alt="Image Description">
+									<div class="hover-content">
+										<button type="button" class="btn btn-outline-primary rounded-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Save for later">
+										<span class="fa fa-heart"></span>
+										</button>
+										<button type="button" class="btn btn-outline-primary rounded-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Add to cart">
+										<span class="fa fa-shopping-cart"></span>
+										</button>
+									</div>
+								</div>
+								<div class="product-body pt-3 px-3 pb-0">
+									<div class="mb-2">
+										<a href="single-product.html" class="product-title">Apple Macbook Pro</a>
+										<div class="my-1 small">
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-muted"></small>
+										</div>
+										<div class="d-block">
+											<span class="fw-500 text-primary">$499</span><span class="text-secondary ml-2"><del>$599</del></span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!-- End Product -->
+						</div>
+						<div class="col-md-6 col-lg-3 mb-4">
+							<!-- Product -->
+							<div class="product-block text-center h-100">
+								<div class="position-relative">
+									<img class="product-thumb" src="images/product-thumb.png" alt="Image Description">
+									<div class="hover-content">
+										<button type="button" class="btn btn-outline-primary rounded-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Save for later">
+										<span class="fa fa-heart"></span>
+										</button>
+										<button type="button" class="btn btn-outline-primary rounded-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Add to cart">
+										<span class="fa fa-shopping-cart"></span>
+										</button>
+									</div>
+								</div>
+								<div class="product-body pt-3 px-3 pb-0">
+									<div class="mb-2">
+										<a href="single-product.html" class="product-title">Apple Macbook Pro</a>
+										<div class="my-1 small">
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-warning"></small>
+											<small class="fa fa-star text-muted"></small>
+										</div>
+										<div class="d-block">
+											<span class="fw-500 text-primary">$499</span><span class="text-secondary ml-2"><del>$599</del></span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!-- End Product -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+        <footer class="footer">
+			<div class="container py-4 py-md-5">
+				<div class="row">
+					<div class="col-md-4">
+						<h4 class="text-uppercase">ANB Shopping</h4>
+						<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever.Since the 1500s, when an unknown printer.</p>
+					</div>
+					<div class="col-md-4">
+						<h4>Follow Us</h4>
+						<p>Since the 1500s, when an unknown printer took a galley of type and scrambled.</p>
+					</div>
+					<div class="col-md-4">
+						<h4>Contact Us</h4>
+						<p class="mb-0">My Company , 4578 Marmora Road, Glasgow D04 89GR</p>
+						<p class="mb-0">Call us now: 0123-456-789</p>
+						<p>Email: support@whatever.com</p>
+					</div>
+				</div>
+				<div class="my-4 mb-5">
+					<hr>
+				</div>
+				<div class="row gutters-1">
+					<div class="col-lg-2 col-md-4 col-6 mb-3 mb-lg-0">
+						<h4>Information</h4>
+						<ul class="footer-links">
+							<li><a href="#">About us</a></li>
+							<li><a href="#">Information</a></li>
+							<li><a href="#">Privacy Policy</a></li>
+							<li><a href="#">Terms & Condition</a></li>
+						</ul>
+					</div>
+					<div class="col-lg-2 col-md-4 col-6 mb-3 mb-lg-0">
+						<h4>Service</h4>
+						<ul class="footer-links">
+							<li><a href="#">About us</a></li>
+							<li><a href="#">Information</a></li>
+							<li><a href="#">Privacy Policy</a></li>
+							<li><a href="#">Terms & Condition</a></li>
+						</ul>
+					</div>
+					<div class="col-lg-2 col-md-4 col-6 mb-3 mb-lg-0">
+						<h4>Extras</h4>
+						<ul class="footer-links">
+							<li><a href="#">About us</a></li>
+							<li><a href="#">Information</a></li>
+							<li><a href="#">Privacy Policy</a></li>
+							<li><a href="#">Terms & Condition</a></li>
+						</ul>
+					</div>
+					<div class="col-lg-2 col-md-4 col-6 mb-3 mb-md-0">
+						<h4>My Account</h4>
+						<ul class="footer-links">
+							<li><a href="#">About us</a></li>
+							<li><a href="#">Information</a></li>
+							<li><a href="#">Privacy Policy</a></li>
+							<li><a href="#">Terms & Condition</a></li>
+						</ul>
+					</div>
+					<div class="col-lg-2 col-md-4 col-6 mb-3 mb-sm-0">
+						<h4>Useful Links</h4>
+						<ul class="footer-links">
+							<li><a href="#">About us</a></li>
+							<li><a href="#">Information</a></li>
+							<li><a href="#">Privacy Policy</a></li>
+							<li><a href="#">Terms & Condition</a></li>
+						</ul>
+					</div>
+					<div class="col-lg-2 col-md-4 col-6">
+						<h4>Our Offers</h4>
+						<ul class="footer-links">
+							<li><a href="#">About us</a></li>
+							<li><a href="#">Information</a></li>
+							<li><a href="#">Privacy Policy</a></li>
+							<li><a href="#">Terms & Condition</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="copyright">
+				<div class="container">
+					<div class="row">
+						<div class="col-lg-6 text-center text-lg-left">
+							<span>Copyright &copy; 2020 ANB Shopping Pvt Ltd.</span>
+						</div>
+						<div class="col-lg-6 text-center text-lg-right mt-2 mt-lg-0">
+							<span><img src="images/payment-cards/western-union.svg"></span>
+							<span><img src="images/payment-cards/discover.svg"></span>
+							<span><img src="images/payment-cards/paypal.svg"></span>
+							<span><img src="images/payment-cards/visa.svg"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</footer>
+	</div>
+
+	<div class="gototop js-top">
+		<a href="#" class="js-gotop"><i class="fa fa-angle-up"></i></a>
+	</div>
+	
+	<!-- jQuery -->
+	<script src="js/jquery.min.js"></script>
+	<!-- popper -->
+   	<script src="js/popper.min.js"></script>
+   	<!-- bootstrap 4.1 -->
+   	<script src="js/bootstrap.min.js"></script>
+   	<!-- jQuery easing -->
+   	<script src="js/jquery.easing.1.3.js"></script>
+	<!-- Waypoints -->
+	<script src="js/jquery.waypoints.min.js"></script>
+	<!-- Owl carousel -->
+	<script src="js/owl.carousel.min.js"></script>
+	<!-- Fancybox Popup -->
+	<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+	<!-- Main -->
+	<script src="js/main.js"></script>
+
+	</body>
+</html>
