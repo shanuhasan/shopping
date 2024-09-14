@@ -62,17 +62,14 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ url('report/index') }}" class="nav-link">
+                    <a href="{{ route('admin.report') }}" class="nav-link @yield('report')">
                         <i class="nav-icon fas fa-circle"></i>
                         Report
                     </a>
                 </li>
 
-
-
-
-                <li class="nav-item {!! Route::getFacadeRoot()->current()->uri() == 'admin/offers' ? 'active' : '' !!}">
-                    <a href="{{ url('admin/offers') }}" class="nav-link">
+                <li class="nav-item">
+                    <a href="{{ route('admin.offers') }}" class="nav-link @yield('offer')">
                         <i class="far fa-circle nav-icon"></i>
                         <p>Offer Product</p>
                     </a>

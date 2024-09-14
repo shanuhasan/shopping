@@ -20,7 +20,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 
 class ProductController extends Controller
 {
-  function index()
+  public function index()
   {
     $data['product_list'] = DB::table('services')
       ->select('services.*', 'categories.category_name', 'sb.category_name as subcategory_name', 'users.name')
@@ -34,7 +34,7 @@ class ProductController extends Controller
     return view('admin.product.index', $data);
   }
 
-  function create()
+  public function create()
   {
     $data['category'] = Category::getCategory();
     $data['tax_pay'] = DB::table('tax_pay')->get();
@@ -46,7 +46,7 @@ class ProductController extends Controller
     return view('admin.product.create', $data);
   }
 
-  function store(Request $request)
+  public function store(Request $request)
   {
     if ($request->gift_wrap) {
       $gift_wrap = 'YES';
@@ -187,7 +187,7 @@ class ProductController extends Controller
     }
   }
 
-  function edit($id)
+  public function edit($id)
   {
     $data['tax_pay'] = DB::table('tax_pay')->get();
 
@@ -212,7 +212,7 @@ class ProductController extends Controller
     return view('admin.product.edit', $data);
   }
 
-  function update(Request $request)
+  public function update(Request $request)
   {
     $id = $request->update_id;
 
@@ -356,7 +356,7 @@ class ProductController extends Controller
     }
   }
 
-  function view($id)
+  public function view($id)
   {
     $data['edit_data'] = Service::find($id);
     $data['category'] = Category::all();
@@ -364,7 +364,7 @@ class ProductController extends Controller
     return view('admin.product.view', $data);
   }
 
-  function active($id)
+  public function active($id)
   {
     $data = array('status' => '0');
     DB::table('services')->where('id', $id)->update($data);
@@ -372,7 +372,7 @@ class ProductController extends Controller
     return redirect()->route('admin.product');
   }
 
-  function deactive($id)
+  public function deactive($id)
   {
     $data = array('status' => '1');
     DB::table('services')->where('id', $id)->update($data);
@@ -380,95 +380,7 @@ class ProductController extends Controller
     return redirect()->route('admin.product');
   }
 
-  public function get_child_category_by_ajax(Request $request)
-  {
-
-    $value_d = $request->value;
-    $data = DB::table('categories')->where('parent_id', $value_d)->get();
-    echo "<option value=''>select child category</option>";
-    foreach ($data as $key => $value) {
-      echo "<option value='" . $value->id . "'>" . $value->category_name . "</option>";
-    }
-  }
-
-
-  public function select_custome_city(Request $request)
-  {
-
-    $value_d = $request->value;
-    $data = DB::table('tbl_pincode')->where('city_id', $value_d)->get();
-    // echo "<option value=''>select postal code</option>";
-    foreach ($data as $key => $value) {
-      echo "<option value='" . $value->pincode . "'>" . $value->pincode . "</option>";
-    }
-  }
-
-
-
-
-
-  function get_subcategory(Request $request)
-  {
-    $parent_id = $request->cat;
-    $data = Category::where('parent_id', $parent_id)->get();
-    echo "<option value=''>Select Subcategory</option>";
-    foreach ($data as $key => $value) {
-      echo "<option value='" . $value->id . "'>" . $value->category_name . "</option>";
-    }
-  }
-  function get_vendor_bycategory1(Request $request)
-  {
-    $parent_id = $request->cat;
-    $data = VendorModel::where('parent_category', $parent_id)->get();
-    echo "<option value=''>Select Vendor</option>";
-    foreach ($data as $key => $value) {
-      echo "<option value='" . $value->id . "'>" . $value->name . " " . $value->last_name . "</option>";
-    }
-  }
-  function get_service_bysubcategory(Request $request)
-  {
-    $subcat = $request->cat;
-
-    $data = ServiceModel::where('subcategory', $subcat)->get();
-
-    if ($data) {
-      foreach ($data as $key => $value) {
-        $img1 = asset('/') . 'uploads/service/' . $value->image;
-        if ($value->image) {
-          $img = '<img src="' . $img1 . '" style="width: 100%; padding:1%">';
-        } else {
-          $img = '';
-        }
-        echo ' <div class="col-lg-3 add_product" data-id="' . $value->id . '">
-                ' . $img . '
-
-                <h6>Rs. ' . $value->service_price . '</h6>
-                <span>' . $value->service_name . '</span>
-              </div>';
-      }
-    } else {
-      echo "<li>No data</li>";
-    }
-  }
-  function get_vendor_details(Request $request)
-  {
-    $id = $request->vendor_id;
-    $data = VendorModel::find($id);
-    echo '
-     <b>Name</b>: ' . $data->name . '  ' . $data->last_name . ',
-     <b>Phone</b>: ' . $data->phone . ',
-     <b>Address</b>: ' . $data->address . ',
-     ';
-  }
-
-
-
-
-
-
-
-
-  function productDelete($id)
+  public function delete($id)
   {
     $edit_data = Service::find($id);
     File::delete(public_path() . '/uploads/service/thumb/' . $edit_data->image);
@@ -478,29 +390,17 @@ class ProductController extends Controller
     return redirect()->route('admin.product');
   }
 
-
-
-
-
-
-  public function store1(request $request)
+  public function get_child_category_by_ajax(Request $request)
   {
-
-    $input = $request->all();
-    $images = array();
-    if ($files = $request->file('images')) {
-      foreach ($files as $file) {
-        $name = $file->getClientOriginalName();
-        $file->move('image', $name);
-        $images[] = $name;
-      }
+    $value_d = $request->value;
+    $data = DB::table('categories')->where('parent_id', $value_d)->get();
+    echo "<option value=''>select child category</option>";
+    foreach ($data as $key => $value) {
+      echo "<option value='" . $value->id . "'>" . $value->category_name . "</option>";
     }
   }
 
-
-
-
-  function uploadvariantimages(Request $request)
+  public function uploadvariantimages(Request $request)
   {
     $variant_id = $request->variant_id;
     if ($request->hasFile('file')) {
@@ -521,9 +421,7 @@ class ProductController extends Controller
     echo $image_name_product;
   }
 
-
-
-  function add_itemsinproduct(Request $request)
+  public function add_itemsinproduct(Request $request)
   {
 
     $data = DB::table('sub_attributes')->where('status', '1')->get();
@@ -620,27 +518,55 @@ class ProductController extends Controller
             <hr>
      ';
   }
-  function deleteProductitems(Request $request)
+
+  public function deleteProductitems(Request $request)
   {
     DB::table('product_items')->where('id', $request->id)->delete();
   }
 
-  function findProducts(Request $request)
+  public function get_subcategory(Request $request)
+  {
+    $parent_id = $request->cat;
+    $data = Category::where('parent_id', $parent_id)->get();
+    echo "<option value=''>Select Subcategory</option>";
+    foreach ($data as $key => $value) {
+      echo "<option value='" . $value->id . "'>" . $value->category_name . "</option>";
+    }
+  }
+
+  public function get_service_bysubcategory(Request $request)
+  {
+    $subcat = $request->cat;
+
+    $data = Service::where('subcategory', $subcat)->get();
+
+    if ($data) {
+      foreach ($data as $key => $value) {
+        $img1 = asset('/') . 'uploads/service/' . $value->image;
+        if ($value->image) {
+          $img = '<img src="' . $img1 . '" style="width: 100%; padding:1%">';
+        } else {
+          $img = '';
+        }
+        echo ' <div class="col-lg-3 add_product" data-id="' . $value->id . '">
+                ' . $img . '
+
+                <h6>Rs. ' . $value->service_price . '</h6>
+                <span>' . $value->service_name . '</span>
+              </div>';
+      }
+    } else {
+      echo "<li>No data</li>";
+    }
+  }
+
+  public function findProducts(Request $request)
   {
 
     $term = $request->term;
     $page = $request->page - 1;
 
-    $slugUser = Sentinel::getUser()->roles()->first()->slug;
-
     $search = DB::table('services');
-
-    if ($slugUser == 'vendor') {
-
-      $user = Sentinel::getUser();
-      $search = $search->where('add_by', $user->id);
-    }
-
 
     $rows['results'] = $search->where("services.service_name", "LIKE", "%{$term}%")
       ->orWhere("services.description", "LIKE", "%{$term}%")
@@ -658,25 +584,6 @@ class ProductController extends Controller
                             "))
       ->leftJoin('product_items', 'services.id', '=', 'product_items.product_id')
       ->get();
-
-    //  $rows['results']= $search->whereLike([
-    //                         "services.description",
-    //                         "services.description",
-    //                         "services.meta_title",
-    //                         "services.slug",
-    //                         "services.meta_keyword",
-    //                         "product_items.item_unit_value",
-    //                         "product_items.item_unit",
-    //                         ], $term)
-    //                         ->offset($page)->limit($request->limit)
-    //                         ->select(DB::raw("
-    //                         services.id,product_items.id as item_id,
-    //                         concat(services.service_name,' ',product_items.item_unit_value,' ',product_items.item_unit) as text,
-    //                         product_items.item_unit_value,
-    //                         product_items.item_unit
-    //                         "))
-    //                         ->leftJoin('product_items', 'services.id', '=', 'product_items.product_id')
-    //                         ->get();
 
     $count = count(DB::table('services')->where("service_name", "LIKE", "%{$term}%")->orWhere("description", "LIKE", "%{$term}%")->orWhere("meta_title", "LIKE", "%{$term}%")->orWhere("slug", "LIKE", "%{$term}%")->orWhere("meta_keyword", "LIKE", "%{$term}%")->get());
     $rows['total_count'] = $count;
@@ -714,7 +621,6 @@ class ProductController extends Controller
 
     return view('admin/attribute/attribute', $data);
   }
-
 
   public function attribute_varition_configer($id = '', $varition = '')
   {

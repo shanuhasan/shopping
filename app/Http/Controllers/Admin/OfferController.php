@@ -2,28 +2,31 @@
 
 namespace App\Http\Controllers\admin;
 
-use App\Models\Offer_product;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Sentinel;
-use Session;
-use Validator;
-use DB;
+use App\Models\Banner;
+use App\Models\OfferBanner;
+use App\Models\OfferProduct;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class OfferController extends Controller
 {
-    function base_url(){
-        $base_url= $_SERVER["DOCUMENT_ROOT"]; 
+    function base_url()
+    {
+        $base_url = $_SERVER["DOCUMENT_ROOT"];
         return $base_url;
     }
     public function index()
     {
-        $data['list']=Offer_product::select('offer_products.*','tbl_services.service_name')
-        ->leftJoin('tbl_services', 'offer_products.product_id', '=', 'tbl_services.id')
-        ->get();  
+        $data['list'] = OfferProduct::select('offer_products.*', 'services.service_name')
+            ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
+            ->get();
         //dd($data['list']);  
-        $data['page_title']='All Offer Products';
-        return view('admin/offers/index',$data);
+        $data['page_title'] = 'All Offer Products';
+        return view('admin.offers.index', $data);
     }
 
     /**
@@ -33,10 +36,10 @@ class OfferController extends Controller
      */
     public function create()
     {
-        $data['list']=DB::table('tbl_services')->get();
+        $data['list'] = DB::table('services')->get();
         //print_r($data['list']); die;
-    	$data['page_title']='Add Offer Products';
-    	return view('admin/offers/add',$data);
+        $data['page_title'] = 'Add Offer Products';
+        return view('admin.offers.add', $data);
     }
 
     /**
@@ -47,33 +50,33 @@ class OfferController extends Controller
      */
     public function store(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
-            'title'=>'required',
-            'value'=>'required',
-            'product'=>'required',
-            'description'=>'required',
-        ]); 
+            'title' => 'required',
+            'value' => 'required',
+            'product' => 'required',
+            'description' => 'required',
+        ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             Session::flash('success', 'Please Fill required feild....');
-            return redirect()->back();
-        } 
-       
-        $data=array(
-            'title'=>$request->title,
-            'value'=>$request->value,
-            'type'=>$request->type,
-            'status'=>'1',
-            'product_id'=>$request->product,
-            'description'=>$request->description,
-            'created_at'=>date('Y-m-d H:i:s'),
-            'updated_at'=>date('Y-m-d H:i:s'),
-        );
-    //print_r($data); die;
-        Offer_product::create($data);
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $model = new OfferProduct();
+        $model->title = $request->title;
+        $model->value = $request->value;
+        $model->type = $request->type;
+        $model->status = 1;
+        $model->product_id = $request->product;
+        $model->description = $request->description;
+        $model->created_at = date('Y-m-d H:i:s');
+        $model->updated_at = date('Y-m-d H:i:s');
+        $model->save();
+
         Session::flash('success', 'Offer Product insert Successfully....');
-        return Redirect('admin/offers');
+        return redirect()->route('admin.offers');
     }
 
     /**
@@ -84,9 +87,9 @@ class OfferController extends Controller
      */
     public function show(Banner $banner)
     {
-        $data['edit_data']=Offer_product::find($banner);
-        $data['page_title']='Edit Offer Product';
-        return view('admin/offers/view',$data);
+        $data['edit_data'] = OfferProduct::find($banner);
+        $data['page_title'] = 'Edit Offer Product';
+        return view('admin/offers/view', $data);
     }
 
     /**
@@ -97,11 +100,11 @@ class OfferController extends Controller
      */
     public function edit($banner)
     {
-         $banner=Offer_product::where('id',$banner)->first();
-          $data['list']=DB::table('tbl_services')->get();
-        $data['edit']=$banner;
-        $data['page_title']='Edit Offer Products';
-        return view('admin/offers/edit',$data);
+        $banner = OfferProduct::where('id', $banner)->first();
+        $data['list'] = DB::table('services')->get();
+        $data['edit'] = $banner;
+        $data['page_title'] = 'Edit Offer Products';
+        return view('admin/offers/edit', $data);
     }
 
     /**
@@ -114,30 +117,31 @@ class OfferController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title'=>'required',
-            'value'=>'required',
-            'product'=>'required',
-            'description'=>'required',
-        ]); 
+            'title' => 'required',
+            'value' => 'required',
+            'product' => 'required',
+            'description' => 'required',
+        ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             Session::flash('success', 'Please Fill required feild....');
-            return redirect()->back();
-        } 
-       
-        $data=array(
-            'title'=>$request->title,
-            'value'=>$request->value,
-            'type'=>$request->type,
-            'status'=>'1',
-            'product_id'=>$request->product,
-            'description'=>$request->description,
-            'updated_at'=>date('Y-m-d H:i:s'),
-        );
-        
-        Offer_product::where('id',$request->id)->update($data);
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $model = OfferProduct::findById($request->id);
+        $model->title = $request->title;
+        $model->value = $request->value;
+        $model->type = $request->type;
+        $model->status = 1;
+        $model->product_id = $request->product;
+        $model->description = $request->description;
+        $model->updated_at = date('Y-m-d H:i:s');
+        $model->save();
+
         Session::flash('success', 'Offers updated Successfully....');
-        return Redirect('admin/offers/edit/'.$request->id);
+        return redirect()->route('admin.offers.edit', $request->id);
     }
 
     /**
@@ -148,18 +152,17 @@ class OfferController extends Controller
      */
     public function destroy($banner)
     {
-        Offer_product::where('id',$banner)->delete();
+        OfferProduct::where('id', $banner)->delete();
         Session::flash('success', 'Offers deleted Successfully....');
-        return Redirect('admin/offers');
+        return redirect()->route('admin.offers');
     }
 
     public function updateStatus($banner)
     {
-        $data=Offer_product::where('id',$banner)->select('status')->first();
-        $status=$data->status==1?0:1;
-        Offer_product::where('id',$banner)->update(['status'=>$status]);
+        $data = OfferProduct::where('id', $banner)->select('status')->first();
+        $status = $data->status == 1 ? 0 : 1;
+        OfferProduct::where('id', $banner)->update(['status' => $status]);
         Session::flash('success', 'Offers updated Successfully....');
-        return Redirect('admin/offers');
+        return redirect()->route('admin.offers');
     }
-
 }

@@ -249,7 +249,7 @@
         $('.parent_category').change(function() {
             var cat = $(this).val();
             $.ajax({
-                url: '{{ url('admin/get_subcategory') }}',
+                url: "{{ route('admin.product.get_subcategory') }}",
                 type: 'get',
                 data: {
                     'cat': cat

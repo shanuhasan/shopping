@@ -17,7 +17,7 @@ use App\Models\User;
 
 class Dashboardcontroller extends Controller
 {
-	public function report_index()
+	public function report()
 	{
 		return view('admin.report.index');
 	}

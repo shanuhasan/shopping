@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CommonController;
+use App\Http\Controllers\admin\OfferController;
 use App\Http\Controllers\admin\OrderController;
 use App\Http\Controllers\admin\BannerController;
 use App\Http\Controllers\admin\ProductController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Admin\UploadImageController;
 
 Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/report', [DashboardController::class, 'report'])->name('report');
 
     //  Banners
     Route::get('/banners', [BannerController::class, 'index'])->name('banner');
@@ -51,33 +53,40 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'],
     Route::get('/child-category/delete/{id}', [CategoryController::class, 'deleteChildCategory'])->name('childcategory.delete');
     Route::get('/child-category/deactive/{id}', [CategoryController::class, 'deactive'])->name('childcategory.deactive');
     Route::get('/child-category/active/{id}', [CategoryController::class, 'active'])->name('childcategory.active');
-
     Route::get('/get_subcategory_by_ajax', [CategoryController::class, 'get_subcategory_by_ajax'])->name('subcategory.get_subcategory_by_ajax');
 
-
-
     //Products
-
     Route::get('/product', [ProductController::class, 'index'])->name('product');
     Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
     Route::post('/product/store', [ProductController::class, 'store'])->name('product.store');
     Route::get('/product/edit/{id}', [ProductController::class, 'edit'])->name('product.edit');
     Route::post('/product/update', [ProductController::class, 'update'])->name('product.update');
     Route::get('/product/view/{id}', [ProductController::class, 'view'])->name('product.view');
-    Route::get('/product/delete/{id}', [ProductController::class, 'productDelete'])->name('product.delete');
+    Route::get('/product/delete/{id}', [ProductController::class, 'delete'])->name('product.delete');
     Route::get('/product/active/{id}', [ProductController::class, 'active'])->name('product.active');
     Route::get('/product/deactive/{id}', [ProductController::class, 'deactive'])->name('product.deactive');
-
     Route::get('/product/add_itemsinproduct', [ProductController::class, 'add_itemsinproduct'])->name('product.add_itemsinproduct');
     Route::get('/product/deleteProductitems', [ProductController::class, 'deleteProductitems'])->name('product.deleteProductitems');
     Route::post('/product/uploadvariantimages', [ProductController::class, 'uploadvariantimages'])->name('product.uploadvariantimages');
-
+    Route::get('/product/remove_product_images', [ProductController::class, 'remove_product_images'])->name('product.remove_product_images');
+    Route::get('/product/get_subcategory', [ProductController::class, 'get_subcategory'])->name('product.get_subcategory');
+    Route::get('/product/get_service_bysubcategory', [ProductController::class, 'get_service_bysubcategory'])->name('product.get_service_bysubcategory');
     Route::get('/product/get_child_category_by_ajax', [ProductController::class, 'get_child_category_by_ajax'])->name('product.get_child_category_by_ajax');
-
+    Route::get('/product/findProducts', [ProductController::class, 'findProducts'])->name('product.findProducts');
+    Route::get('/product/getProductDeatails', [ProductController::class, 'getProductDeatails'])->name('product.getProductDeatails');
     Route::get('/attribute', [ProductController::class, 'attribute'])->name('attribute');
     Route::get('/attribute_varition_configer/{id}/{varition?}', [ProductController::class, 'attribute_varition_configer'])->name('attribute_varition_configer');
     Route::post('/add_varition', [ProductController::class, 'add_varition'])->name('add_varition');
 
+    ///offer product
+    Route::get('/offers', [OfferController::class, 'index'])->name('offers');
+    Route::get('/offers/status/{id}', [OfferController::class, 'updateStatus'])->name('offers.status');
+    Route::get('/offers/create', [OfferController::class, 'create'])->name('offers.create');
+    Route::post('/offers/store', [OfferController::class, 'store'])->name('offers.store');
+    Route::get('/offers/edit/{id}', [OfferController::class, 'edit'])->name('offers.edit');
+    Route::post('/offers/update', [OfferController::class, 'update'])->name('offers.update');
+    Route::get('/offers/view/{id}', [OfferController::class, 'show'])->name('offers.show');
+    Route::get('/offers/delete/{id}', [OfferController::class, 'destroy'])->name('offers.destroy');
 
 
 
