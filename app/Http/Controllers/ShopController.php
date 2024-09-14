@@ -5,59 +5,41 @@ namespace App\Http\Controllers;
 use Cookie;
 use Session;
 use Sentinel;
+use App\Models\Service;
+use App\Models\Wishlist;
+use App\Models\ProductItem;
 use App\Models\ServiceModel;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use App\Models\Category as Category;
-use App\Models\ProductItem;
-use App\Models\Service;
+use Illuminate\Support\Facades\Auth;
 
 class ShopController extends Controller
 {
     public function addToWishlist(Request $request)
     {
-
-
-        if (Sentinel::check()) {
-
-
-
-            $user = Sentinel::getUser();
-
-
-
+        if (Auth::check()) {
+            $user = Auth::getUser();
+            $model = Wishlist::findByProductIdAndAppId($request->productid, $user->id);
+            if (!empty($model)) {
+                return response()->json([
+                    "status" => "error",
+                    "message" => "Item already added in wishlist."
+                ]);
+            }
             DB::table('wishlists')->insert([
-
-
-
                 "product_id" => $request->productid,
-
                 "app_id" => $user->id
-
-
-
             ]);
-
-
-
             return response()->json([
-
-                "status" => "errro",
-
+                "status" => "success",
                 "message" => "Item add wishlist successfully."
-
             ]);
         } else {
-
-
-
             return response()->json([
-
                 "status" => "error",
-
                 "message" => "Please First login your account."
-
             ]);
         }
     }

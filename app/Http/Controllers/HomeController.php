@@ -12,9 +12,11 @@ use App\Models\Banner;
 use App\Models\Country;
 use App\Models\Service;
 use App\Models\Category;
+use App\Models\OrderItem;
 use App\Models\OrderItems;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use App\Models\Category_model as Category_model;
@@ -361,12 +363,12 @@ class HomeController extends Controller
 
     public function orders()
     {
-        if (!Sentinel::check()) {
+        if (!Auth::check()) {
             Session::flash('error', 'Please Login your account');
             return redirect('/login');
         }
 
-        $user = Sentinel::getUser();
+        $user = Auth::user();
 
         $data_lsit = array();
         $data_lsit = Order::where("user_id", $user->id)->orderBy('id', 'DESC')->whereIn('payment_method', ['online', 'cod'])->get()->toArray();
@@ -374,7 +376,7 @@ class HomeController extends Controller
         $data['orders'] = $data_lsit;
         $data['title'] = "Orders";
 
-        return view('orders', $data);
+        return view('frontend.orders', $data);
     }
 
     function sent_mail($email = '', $subject = '', $msg = '')
@@ -567,18 +569,18 @@ class HomeController extends Controller
     public function orderDetails($id)
     {
 
-        if (!Sentinel::check()) {
+        if (!Auth::check()) {
             Session::flash('error', 'Please Login your account');
             return redirect('/login');
         }
 
-        $user = Sentinel::getUser();
+        $user = Auth::getUser();
 
         $data = Order::where(["user_id" => $user->id, 'id' => $id])->first();
 
         $data['user_address'] = DB::table('user_address')->where('id', $data->user_address)->first();
 
-        $orderitem = OrderItems::where('order_id', $id)->get();
+        $orderitem = OrderItem::where('order_id', $id)->get();
         $order_item = [];
 
         foreach ($orderitem as $k => $prod) {
@@ -628,19 +630,18 @@ class HomeController extends Controller
         $data['order_item'] = $order_item;
 
         //dd($data);
-        return view('order_details', compact('data'));
+        return view('frontend.order_details', compact('data'));
     }
 
 
     function wishlist()
     {
-
-        if (!Sentinel::check()) {
+        if (!Auth::check()) {
             Session::flash('error', 'Please Login your account');
             return redirect('/login');
         }
 
-        $user = Sentinel::getUser();
+        $user = Auth::getUser();
         $wishData = DB::table('wishlists')->where('app_id', $user->id)->get();
         $wish_use_id = [];
 
@@ -656,19 +657,19 @@ class HomeController extends Controller
             });
 
         $data['wishlist'] = $services;
-        return view('wishlist', $data);
+        return view('frontend.wishlist', $data);
     }
 
 
     function profile()
     {
 
-        if (!Sentinel::check()) {
+        if (!Auth::check()) {
             Session::flash('error', 'Please Login your account');
             return redirect('/login');
         }
-        $user = Sentinel::getUser();
-        return view('profile', compact('user'));
+        $user = Auth::getUser();
+        return view('frontend.profile', compact('user'));
     }
 
 
@@ -676,28 +677,26 @@ class HomeController extends Controller
     public function profile_update(Request $request)
     {
 
-        if (!Sentinel::check()) {
+        if (!Auth::check()) {
             Session::flash('error', 'Please Login your account');
             return redirect('/login');
         }
-        $user = Sentinel::getUser();
+        $user = Auth::getUser();
 
-        $updateData = [
-            "first_name" => $request->first_name,
-            "last_name" => $request->last_name,
-            "line_1" => $request->line_1,
-            "line_2" => $request->line_2,
-            "zip_code" => $request->zip_code
-        ];
+        $model = User::findById($user->id);
+        $model->name = $request->name;
+        $model->address_1 = $request->address_1;
+        $model->address_2 = $request->address_2;
+        $model->pincode = $request->pincode;
+        $model->phone = $request->phone;
+
 
         if ($request->new_password !== null || $request->confirm_password !== null) {
 
             if ($request->new_password == $request->confirm_password) {
-
                 $pass = Hash::make($request->new_password);
-                $updateData['password'] = $pass;
+                $model->password = $pass;
             } else {
-
                 return redirect()->back()->with('errors', 'New password or confirm password not match..');
             }
         }
@@ -710,10 +709,10 @@ class HomeController extends Controller
             $destinationPath = public_path('/uploads/profile/');
             $image->move($destinationPath, $name);
 
-            $updateData['profile_image'] = $name;
+            $model->image = $name;
         }
 
-        DB::table('users')->where('id', $user->id)->update($updateData);
+        $model->save();
 
         return redirect()->back()->with('success', 'Profile update successfully..');
     }

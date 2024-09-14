@@ -37,6 +37,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/addTocart', [HomeController::class, 'addToCart']);
     Route::get('/removeTocart', [HomeController::class, 'removeTocart']);
 
+    // my order
+    Route::get('/my-order', [HomeController::class, 'orders']);
+    Route::get('/orderdetails/{id}', [HomeController::class, 'orderdetails']);
+    Route::get('/wishlist', [HomeController::class, 'wishlist']);
+    Route::get('/profile', [HomeController::class, 'profile']);
+    Route::post('/profile/update', [HomeController::class, 'profile_update']);
+
 
     Route::get('/buy-now', [CheckoutController::class, 'buy_now_checkout'])->name('buy_now_checkout');
     Route::post('/order_place_buynow', [OrderController::class, 'order_place_buynow'])->name('order_place_buynow');

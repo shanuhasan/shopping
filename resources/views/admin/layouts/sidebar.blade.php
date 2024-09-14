@@ -74,8 +74,8 @@
                         <p>Offer Product</p>
                     </a>
                 </li>
-                <li class="nav-item {!! Route::getFacadeRoot()->current()->uri() == 'admin/coupons' ? 'active' : '' !!}">
-                    <a href="{{ url('admin/coupons') }}" class="nav-link">
+                <li class="nav-item">
+                    <a href="{{ route('admin.coupons') }}" class="nav-link @yield('coupon')">
                         <i class="far fa-circle nav-icon"></i>
                         <p>Coupons</p>
                     </a>

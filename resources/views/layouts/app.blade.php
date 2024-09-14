@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="{{ asset('front/css/owl.theme.default.min.css') }}">
     <link rel="stylesheet" href="{{ asset('front/css/bootstrap-datepicker.css') }}">
     <link rel="stylesheet" href="{{ asset('front/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('admin-assets/bacend/plugins/toastr/toastr.min.css') }}">
 </head>
 
 <body>
@@ -36,7 +37,7 @@
                                 <div class="d-flex" style="align-items: baseline;">
                                     <div class="d-none_b d-md-inline-block" style="margin: 0px 6px;">
                                         @if (Auth::user()->image != '')
-                                            <img src="{{ url('/public/uploads/profile', Auth::user()->image) }}"
+                                            <img src="{{ url('/uploads/profile', Auth::user()->image) }}"
                                                 style="width: 28px; border-radius: 16px;box-shadow: 0px 0px 1px 0px black;">
                                             {{ Auth::user()->name }}
                                         @else
@@ -800,55 +801,26 @@
 
     <script>
         $(document).ready(function() {
-
-
-
             $('.add-to-wishlist').click(function() {
-
-
-
                 var productid = $(this).attr('data-product_id');
-
-
-
                 $.ajax({
-
-                    url: '{{ url('/addToWishlist') }}',
-
+                    url: "{{ url('/addToWishlist') }}",
                     type: 'get',
-
                     data: {
                         'productid': productid
                     },
 
                     success: function(data) {
-
-
-
                         if (data.status == 'error') {
-
                             $("#top_bar").load(" #top_bar");
-
                             toastr.error(data.message);
-
                         } else {
-
                             $("#top_bar").load(" #top_bar");
-
                             toastr.success(data.message);
-
                         }
-
                     }
-
                 });
-
-
-
             });
-
-
-
         });
     </script>
 

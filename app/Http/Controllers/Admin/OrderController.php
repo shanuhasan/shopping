@@ -47,10 +47,10 @@ class OrderController extends Controller
         $data['area'] = DB::table('tbl_area')->get();
         $data['cities'] = DB::table('tbl_custom_city')->get();
 
-        $data['product_list'] = DB::table('orders')->select('orders.order_id', 'orders.email', 'orders.date', 'tbl_services.service_name', 'users.first_name', 'users.last_name', 'orders.status', 'order_items.price', 'user.first_name as user_id', 'tbl_custom_city.city')
+        $data['product_list'] = DB::table('orders')->select('orders.order_id', 'orders.email', 'orders.date', 'services.service_name', 'users.first_name', 'users.last_name', 'orders.status', 'order_items.price', 'user.first_name as user_id', 'tbl_custom_city.city')
             ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-            ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
-            ->leftJoin('users', 'tbl_services.add_by', '=', 'users.id')
+            ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
+            ->leftJoin('users', 'services.add_by', '=', 'users.id')
             ->leftJoin('deliveries', 'deliveries.order_id', '=', 'orders.id')
             ->leftJoin('users as user', 'deliveries.user_id', '=', 'user.id')
             ->leftJoin('users as u', 'u.id', '=', 'orders.user_id')
@@ -75,11 +75,11 @@ class OrderController extends Controller
         );
         $slug = Sentinel::getUser()->roles()->first()->slug;
 
-        $products = DB::table('orders')->select('orders.order_id', 'orders.email', 'orders.date', 'tbl_services.service_name', 'users.first_name', 'users.last_name', 'order_items.status', 'order_items.price', 'orders.payment_method', 'user.first_name as user_id')
+        $products = DB::table('orders')->select('orders.order_id', 'orders.email', 'orders.date', 'services.service_name', 'users.first_name', 'users.last_name', 'order_items.status', 'order_items.price', 'orders.payment_method', 'user.first_name as user_id')
             ->whereIn('orders.order_id', $array)
             ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-            ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
-            ->leftJoin('users', 'tbl_services.add_by', '=', 'users.id')
+            ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
+            ->leftJoin('users', 'services.add_by', '=', 'users.id')
             ->leftJoin('deliveries', 'deliveries.order_id', '=', 'orders.id')
             ->leftJoin('users as user', 'deliveries.user_id', '=', 'user.id')
             ->orderBy('orders.date', 'desc')
@@ -140,10 +140,10 @@ class OrderController extends Controller
         $data['area'] = DB::table('tbl_area')->get();
         $data['cities'] = DB::table('tbl_custom_city')->get();
 
-        $getData = DB::table('orders')->select('orders.order_id', 'orders.date', 'orders.email', 'tbl_services.service_name', 'users.first_name', 'users.last_name', 'order_items.status', 'order_items.price', 'orders.area', 'orders.payment_method', 'user.first_name as user_id', 'tbl_custom_city.city')
+        $getData = DB::table('orders')->select('orders.order_id', 'orders.date', 'orders.email', 'services.service_name', 'users.first_name', 'users.last_name', 'order_items.status', 'order_items.price', 'orders.area', 'orders.payment_method', 'user.first_name as user_id', 'tbl_custom_city.city')
             ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-            ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
-            ->leftJoin('users', 'tbl_services.add_by', '=', 'users.id')
+            ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
+            ->leftJoin('users', 'services.add_by', '=', 'users.id')
             ->leftJoin('deliveries', 'deliveries.order_id', '=', 'orders.id')
             ->leftJoin('users as user', 'deliveries.user_id', '=', 'user.id')
             ->leftJoin('users as u', 'u.id', '=', 'orders.user_id')
@@ -151,7 +151,7 @@ class OrderController extends Controller
 
 
         if ($venid) {
-            $getData = $getData->where('tbl_services.add_by', $venid);
+            $getData = $getData->where('services.add_by', $venid);
         }
         if ($status) {
             $getData = $getData->where('order_items.status', $status);
@@ -211,9 +211,9 @@ class OrderController extends Controller
             $users = Sentinel::getUser();
             $orders = array();
             $orders = Order::whereIn('orders.id', $array)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.name as name,orders.email as email,orders.phone as phone,orders.status as status,orders.payment_status as payment_status,date,order_items.vendor_id as vendor_id"))
-                ->whereRaw("tbl_services.add_by={$users->id}")
+                ->whereRaw("services.add_by={$users->id}")
                 ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->groupBy("orders.id")
                 ->get();
             foreach ($orders as $key => $value) {
@@ -327,9 +327,9 @@ class OrderController extends Controller
             $users = User::getUsers();
 
             $orders = Order::select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("tbl_services.add_by={$users->id}")
+                ->whereRaw("services.add_by={$users->id}")
                 ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->groupBy("orders.id")
                 ->get();
 
@@ -369,9 +369,9 @@ class OrderController extends Controller
             $users = Sentinel::getUser();
             $orders = array();
             $orders = Order::select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("tbl_services.add_by={$users->id}")
+                ->whereRaw("services.add_by={$users->id}")
                 ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->groupBy("orders.id")
                 ->get();
             foreach ($orders as $key => $value) {
@@ -485,9 +485,9 @@ class OrderController extends Controller
             }
 
             $orders = $search_vendor->select(DB::raw("orders.*"))
-                ->where("tbl_services.add_by", $users->id)
+                ->where("services.add_by", $users->id)
                 ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->groupBy("orders.id")
                 ->get();
 
@@ -676,16 +676,16 @@ class OrderController extends Controller
             $data['order'] = Order::where('id', $order)->first();
 
             $data['items'] = OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,tbl_services.service_name"))
+                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
                 ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->get();
             $offer_list = array();
 
             $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
-                ->select(DB::raw("offer_products.*,if(tbl_services.image,concat('/uploads/service/',tbl_services.image),'') as image, tbl_services.service_name,tbl_services.unit,tbl_services.unit_value"))
+                ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name,services.unit,services.unit_value"))
                 ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-                ->leftJoin('tbl_services', 'offer_products.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
                 //->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
                 ->get();
             $data['offer_list'] = $offer_list;
@@ -693,15 +693,15 @@ class OrderController extends Controller
             $data['offer_list'] = array();
             $users = Sentinel::getUser();
             $data['order'] = Order::where('orders.id', $order)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("tbl_services.add_by={$users->id}")
+                ->whereRaw("services.add_by={$users->id}")
                 ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->groupBy("orders.id")->first();
             // dd( $data['order']);
             $data['items'] = OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,tbl_services.service_name"))
-                ->whereRaw("tbl_services.add_by={$users->id}")
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
+                ->whereRaw("services.add_by={$users->id}")
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
                 ->get();
         }
@@ -715,29 +715,29 @@ class OrderController extends Controller
         if ($slug == 'super_admin') {
             $data['order'] = Order::where('id', $order)->first();
             $data['items'] = OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,tbl_services.service_name"))
+                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
                 ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->get();
             $offer_list = array();
 
             $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
-                ->select(DB::raw("offer_products.*,if(tbl_services.image,concat('/uploads/service/',tbl_services.image),'') as image, tbl_services.service_name,tbl_services.unit,tbl_services.unit_value"))
+                ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name,services.unit,services.unit_value"))
                 ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-                ->leftJoin('tbl_services', 'offer_products.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
                 ->get();
             $data['offer_list'] = $offer_list;
         } else {
             $users = Sentinel::getUser();
             $data['order'] = Order::where('orders.id', $order)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("tbl_services.add_by={$users->id}")
+                ->whereRaw("services.add_by={$users->id}")
                 ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->groupBy("orders.id")->first();
             // dd( $data['order']);
             $data['items'] = OrderItems::where('order_id', $order)
-                ->whereRaw("tbl_services.add_by={$users->id}")
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->whereRaw("services.add_by={$users->id}")
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->get();
         }
         $data['page_title'] = 'Print Order';
@@ -750,29 +750,29 @@ class OrderController extends Controller
         if ($slug == 'super_admin') {
             $data['order'] = Order::where('id', $order)->first();
             $data['items'] = OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,tbl_services.service_name"))
+                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
                 ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->get();
             $offer_list = array();
 
             $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
-                ->select(DB::raw("offer_products.*,if(tbl_services.image,concat('/uploads/service/',tbl_services.image),'') as image, tbl_services.service_name"))
+                ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name"))
                 ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-                ->leftJoin('tbl_services', 'offer_products.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
                 ->get();
             $data['offer_list'] = $offer_list;
         } else {
             $users = Sentinel::getUser();
             $data['order'] = Order::where('orders.id', $order)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("tbl_services.add_by={$users->id}")
+                ->whereRaw("services.add_by={$users->id}")
                 ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->groupBy("orders.id")->first();
             // dd( $data['order']);
             $data['items'] = OrderItems::where('order_id', $order)
-                ->whereRaw("tbl_services.add_by={$users->id}")
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->whereRaw("services.add_by={$users->id}")
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->get();
         }
         $data['page_title'] = 'View Order';
@@ -964,11 +964,11 @@ class OrderController extends Controller
     {
         //echo $request->item_id; die;
 
-        $product = DB::table('tbl_services')
-            ->where("tbl_services.id", $request->product_id)
+        $product = DB::table('services')
+            ->where("services.id", $request->product_id)
             ->where("product_items.id", $request->item_id)
-            ->select("tbl_services.id", "product_items.id as item_id", "tbl_services.service_name", "product_items.item_mrp_price as service_price", "product_items.item_unit as unit", "product_items.item_unit_value as unit_value", "product_items.item_price as sale_price", "tbl_services.image")
-            ->leftJoin('product_items', 'tbl_services.id', '=', 'product_items.product_id')
+            ->select("services.id", "product_items.id as item_id", "services.service_name", "product_items.item_mrp_price as service_price", "product_items.item_unit as unit", "product_items.item_unit_value as unit_value", "product_items.item_price as sale_price", "services.image")
+            ->leftJoin('product_items', 'services.id', '=', 'product_items.product_id')
             ->first();
 
         $cart = array();
@@ -1090,29 +1090,29 @@ class OrderController extends Controller
         if ($slug == 'super_admin') {
             $data['order'] = Order::where('id', $order)->first();
             $data['items'] = OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,tbl_services.service_name"))
+                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
                 ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->get();
             $offer_list = array();
 
             $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
-                ->select(DB::raw("offer_products.*,if(tbl_services.image,concat('/uploads/service/',tbl_services.image),'') as image, tbl_services.service_name"))
+                ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name"))
                 ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-                ->leftJoin('tbl_services', 'offer_products.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
                 ->get();
             $data['offer_list'] = $offer_list;
         } else {
             $users = Sentinel::getUser();
             $data['order'] = Order::where('orders.id', $order)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("tbl_services.add_by={$users->id}")
+                ->whereRaw("services.add_by={$users->id}")
                 ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->groupBy("orders.id")->first();
             // dd( $data['order']);
             $data['items'] = OrderItems::where('order_id', $order)
-                ->whereRaw("tbl_services.add_by={$users->id}")
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->whereRaw("services.add_by={$users->id}")
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->get();
         }
         $data['page_title'] = 'View Order';
@@ -1130,29 +1130,29 @@ class OrderController extends Controller
         if ($slug == 'super_admin') {
             $data['order'] = Order::where('id', $order)->first();
             $data['items'] =  OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,tbl_services.service_name"))
+                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
                 ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->get();
             $offer_list = array();
 
             $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
-                ->select(DB::raw("offer_products.*,if(tbl_services.image,concat('/uploads/service/',tbl_services.image),'') as image, tbl_services.service_name"))
+                ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name"))
                 ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-                ->leftJoin('tbl_services', 'offer_products.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
                 ->get();
             $data['offer_list'] = $offer_list;
         } else {
             $users = Sentinel::getUser();
             $data['order'] = Order::where('orders.id', $order)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("tbl_services.add_by={$users->id}")
+                ->whereRaw("services.add_by={$users->id}")
                 ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->groupBy("orders.id")->first();
             // dd( $data['order']);
             $data['items'] = OrderItems::where('order_id', $order)
-                ->whereRaw("tbl_services.add_by={$users->id}")
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->whereRaw("services.add_by={$users->id}")
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->get();
         }
         $data['page_title'] = 'View Order';
@@ -1162,9 +1162,9 @@ class OrderController extends Controller
     function get_order_item($id)
     {
         $data =  OrderItem::where('order_items.order_id', $id)
-            ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,tbl_services.service_name"))
+            ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
             ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-            ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+            ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
             ->get();
         return $data;
     }
@@ -1173,9 +1173,9 @@ class OrderController extends Controller
         $offer_list = array();
 
         $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $id)
-            ->select(DB::raw("offer_products.*,if(tbl_services.image,concat('/uploads/service/',tbl_services.image),'') as image, tbl_services.service_name,tbl_services.unit,tbl_services.unit_value"))
+            ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name,services.unit,services.unit_value"))
             ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-            ->leftJoin('tbl_services', 'offer_products.product_id', '=', 'tbl_services.id')
+            ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
             ->get();
         return $offer_list;
     }
@@ -1197,9 +1197,9 @@ class OrderController extends Controller
         } else {
             $users = Sentinel::getUser();
             $order_data = Order::whereIn('orders.id', $array)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("tbl_services.add_by={$users->id}")
+                ->whereRaw("services.add_by={$users->id}")
                 ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
                 ->groupBy("orders.id")->get();
             foreach ($order_data as $key => $value) {
                 $order_data[$key]->order_item = $this->get_order_item($value->id);
@@ -1222,9 +1222,9 @@ class OrderController extends Controller
     function get_order_item_array($id)
     {
         $data = OrderItems::where('order_items.order_id', $id)
-            ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,tbl_services.service_name"))
+            ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
             ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-            ->leftJoin('tbl_services', 'order_items.product_id', '=', 'tbl_services.id')
+            ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
             ->get();
         return $data;
     }
@@ -1232,9 +1232,9 @@ class OrderController extends Controller
     {
         $offer_list = array();
         $offer_list = DB::table('validate_offers')->whereIn('validate_offers.order_id', $id)
-            ->select(DB::raw("offer_products.*,if(tbl_services.image,concat('/uploads/service/',tbl_services.image),'') as image, tbl_services.service_name,tbl_services.unit,tbl_services.unit_value"))
+            ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name,services.unit,services.unit_value"))
             ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-            ->leftJoin('tbl_services', 'offer_products.product_id', '=', 'tbl_services.id')
+            ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
             ->get();
         return $offer_list;
     }

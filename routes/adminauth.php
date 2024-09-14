@@ -5,6 +5,7 @@ use App\Http\Controllers\CommonController;
 use App\Http\Controllers\admin\OfferController;
 use App\Http\Controllers\admin\OrderController;
 use App\Http\Controllers\admin\BannerController;
+use App\Http\Controllers\admin\CouponController;
 use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -88,6 +89,15 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'],
     Route::get('/offers/view/{id}', [OfferController::class, 'show'])->name('offers.show');
     Route::get('/offers/delete/{id}', [OfferController::class, 'destroy'])->name('offers.destroy');
 
+    ///coupons
+    Route::get('/coupons', [CouponController::class, 'index'])->name('coupons');
+    Route::get('/coupons/status/{id}', [CouponController::class, 'updateStatus'])->name('coupons.status');
+    Route::get('/coupons/create', [CouponController::class, 'create'])->name('coupons.create');
+    Route::post('/coupons/store', [CouponController::class, 'store'])->name('coupons.store');
+    Route::get('/coupons/edit/{id}', [CouponController::class, 'edit'])->name('coupons.edit');
+    Route::post('/coupons/update', [CouponController::class, 'update'])->name('coupons.update');
+    Route::get('/coupons/view/{id}', [CouponController::class, 'show'])->name('coupons.show');
+    Route::get('/coupons/delete/{id}', [CouponController::class, 'destroy'])->name('coupons.destroy');
 
 
     //order

@@ -71,4 +71,9 @@ class User extends Authenticatable
 
         return $users;
     }
+
+    static public function findById($id)
+    {
+        return self::where('id', $id)->first();
+    }
 }
