@@ -74,7 +74,7 @@
                     <div class="products">
                         <div class="product-slider owl-theme">
 
-                            @if (count($comdowns) > 0)
+                            @if (count($comdowns) > 0 && isset($comdowns['item']))
                                 @foreach ($comdowns['item'] as $comdown)
                                     <div class="item">
                                         <!-- Product -->
@@ -166,7 +166,7 @@
 
                                                     @if (!empty($recentProduct['image']))
                                                         <img class="product-thumb img-fluid"
-                                                            src="<?php echo asset('/'); ?>{{ $recentProduct['image'] }}"
+                                                            src="{{ asset($recentProduct['image']) }}"
                                                             alt="{{ $recentProduct['name'] }}">
                                                     @else
                                                         <img class="product-thumb img-fluid" src="<?php echo asset('/uploads/default-store.jpg'); ?>"
@@ -218,7 +218,7 @@
 
                                                 @if (!empty($recentProduct['image']))
                                                     <img class="product-thumb img-fluid"
-                                                        src="<?php echo asset('/'); ?>{{ $recentProduct['image'] }}"
+                                                        src="{{ asset($recentProduct['image']) }}"
                                                         alt="{{ $recentProduct['name'] }}">
                                                 @else
                                                     <img class="product-thumb img-fluid" src="<?php echo asset('/uploads/default-store.jpg'); ?>"
@@ -336,7 +336,7 @@
                                                     <div class="position-relative">
                                                         @if (!empty($item['image']))
                                                             <img class="product-thumb img-fluid"
-                                                                src="<?php echo asset('/'); ?>{{ $item['image'] }}"
+                                                                src="{{ asset($item['image']) }}"
                                                                 alt="{{ $item['name'] }}">
                                                         @else
                                                             <img class="product-thumb img-fluid"

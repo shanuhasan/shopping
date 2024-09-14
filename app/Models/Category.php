@@ -27,11 +27,14 @@ class Category extends Model
             ->get();
     }
 
-    static public function getSubCategory()
+    static public function getSubCategory($categoryId = null)
     {
         $data = Category::select('categories.*', 'tc.category_name as subcategory_name')
-            ->where('categories.which_type', 'sub_cat')
-            ->leftJoin('categories as tc', 'categories.parent_id', '=', 'tc.id')
+            ->where('categories.which_type', 'sub_cat');
+        if (!empty($categoryId)) {
+            $data = $data->where('categories.parent_id', $categoryId);
+        }
+        $data =   $data->leftJoin('categories as tc', 'categories.parent_id', '=', 'tc.id')
             ->get();
         return $data;
     }

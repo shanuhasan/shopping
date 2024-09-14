@@ -221,8 +221,8 @@ class HomeController extends Controller
             );
         }
 
-        $product['comdown_start'] = $results[0]['comdown_start'];
-        $product['comdown_end'] = $results[0]['comdown_end'];
+        $product['comdown_start'] = @$results[0]['comdown_start'];
+        $product['comdown_end'] = @$results[0]['comdown_end'];
         return $product;
     }
 

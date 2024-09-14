@@ -206,7 +206,6 @@
     </div>
     <link rel="stylesheet" href="{{ asset('admin-assets/bacend/plugins/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-    <!--  <link href="{{ asset('admin-assets/ck/editor.css') }}" type="text/css" rel="stylesheet"/> -->
     <style>
         .toast-message {
             font-size: 15px;
@@ -282,7 +281,7 @@
 
 
             $.ajax({
-                url: '{{ url('admin/get-subcategory') }}',
+                url: "{{ route('admin.get-subcategory') }}",
                 type: 'get',
                 data: {
                     'cat': cat
@@ -906,10 +905,10 @@
             var html = $('.get_html').html();
             $('.append_html').append(html);
         });
-        $('.add_more_items').click(function() {
 
+        $('.add_more_items').click(function() {
             $.ajax({
-                url: '{{ url('admin/add_itemsinproduct') }}',
+                url: "{{ route('admin.product.add_itemsinproduct') }}",
                 type: 'get',
                 data: {
                     'id': $(this).data('id')
@@ -925,18 +924,18 @@
             $(this).parent('div').parent('.row').remove();
             if ($(this).data('id')) {
                 $.ajax({
-                    url: '{{ url('admin/deleteProductitems') }}',
+                    url: "{{ route('admin.product.deleteProductitems') }}",
                     type: 'get',
                     data: {
                         'id': $(this).data('id')
                     },
                     success: function(data) {
                         /// alert(data);
-
                     }
                 });
             }
         });
+
         $('body').on('change', '.change_status_delivery', function() {
             var id = $(this).data('id');
             var user_id = $(this).data('userid');
@@ -968,7 +967,7 @@
             new_form.append('images', file_data);
             new_form.append('variant_id', variant_id);
             $.ajax({
-                url: '{{ url('admin/uploadvariantimages') }}',
+                url: "{{ route('admin.product.uploadvariantimages') }}",
                 type: 'get',
                 data: new_form,
                 contentType: false,
@@ -1004,7 +1003,7 @@
                 formData.append('variant_id', variant_id);
 
                 $.ajax({
-                    url: '{{ url('admin/uploadvariantimages') }}',
+                    url: "{{ route('admin.product.uploadvariantimages') }}",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -1033,7 +1032,7 @@
                 var value = $(this).val();
 
                 $.ajax({
-                    url: '{{ url('admin/get_child_category_by_ajax') }}',
+                    url: "{{ route('admin.product.get_child_category_by_ajax') }}",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },

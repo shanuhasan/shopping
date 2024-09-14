@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CommonController;
 use App\Http\Controllers\admin\OrderController;
 use App\Http\Controllers\admin\BannerController;
 use App\Http\Controllers\admin\ProductController;
@@ -58,6 +59,20 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'],
     //Products
 
     Route::get('/product', [ProductController::class, 'index'])->name('product');
+    Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
+    Route::post('/product/store', [ProductController::class, 'store'])->name('product.store');
+    Route::get('/product/edit/{id}', [ProductController::class, 'edit'])->name('product.edit');
+    Route::post('/product/update', [ProductController::class, 'update'])->name('product.update');
+    Route::get('/product/view/{id}', [ProductController::class, 'view'])->name('product.view');
+    Route::get('/product/delete/{id}', [ProductController::class, 'productDelete'])->name('product.delete');
+    Route::get('/product/active/{id}', [ProductController::class, 'active'])->name('product.active');
+    Route::get('/product/deactive/{id}', [ProductController::class, 'deactive'])->name('product.deactive');
+
+    Route::get('/product/add_itemsinproduct', [ProductController::class, 'add_itemsinproduct'])->name('product.add_itemsinproduct');
+    Route::get('/product/deleteProductitems', [ProductController::class, 'deleteProductitems'])->name('product.deleteProductitems');
+    Route::post('/product/uploadvariantimages', [ProductController::class, 'uploadvariantimages'])->name('product.uploadvariantimages');
+
+    Route::get('/product/get_child_category_by_ajax', [ProductController::class, 'get_child_category_by_ajax'])->name('product.get_child_category_by_ajax');
 
     Route::get('/attribute', [ProductController::class, 'attribute'])->name('attribute');
     Route::get('/attribute_varition_configer/{id}/{varition?}', [ProductController::class, 'attribute_varition_configer'])->name('attribute_varition_configer');
@@ -70,4 +85,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'],
     Route::get('/order', [OrderController::class, 'index'])->name('order.index');
 
     Route::post('/upload-image', [UploadImageController::class, 'create'])->name('media.create');
+
+    //common
+    Route::get('/get-subcategory', [CommonController::class, 'getSubCategory'])->name('get-subcategory');
 });

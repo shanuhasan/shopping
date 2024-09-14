@@ -5,17 +5,380 @@ namespace App\Http\Controllers\admin;
 use Sentinel;
 use App\Models\Type;
 use App\Models\User;
+use App\Models\Media;
+use App\Models\Service;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Intervention\Image\ImageManager;
 use Illuminate\Support\Facades\Session;
-use App\Models\VendorModel as VendorModel;
-use App\Models\ServiceModel as ServiceModel;
-use App\Models\Category_model as Category_model;
+use Illuminate\Support\Facades\Validator;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class ProductController extends Controller
 {
+  function index()
+  {
+    $data['product_list'] = DB::table('services')
+      ->select('services.*', 'categories.category_name', 'sb.category_name as subcategory_name', 'users.name')
+      ->leftJoin('categories', 'services.parent_category', '=', 'categories.id')
+      ->leftJoin('categories as sb', 'services.subcategory', '=', 'sb.id')
+      ->leftJoin('users', 'services.add_by', '=', 'users.id')
+      ->orderBy('services.id', 'desc')
+      ->get();
+
+    $data['page_title'] = 'All Products';
+    return view('admin.product.index', $data);
+  }
+
+  function create()
+  {
+    $data['category'] = Category::getCategory();
+    $data['tax_pay'] = DB::table('tax_pay')->get();
+    $data['types'] = Type::where(['status' => 1])->get();
+    $data['page_title'] = 'Add Service';
+    $data['all_product'] = Service::all();
+    $data['subattributes'] = DB::table('sub_attributes')->where('status', '1')->get();
+
+    return view('admin.product.create', $data);
+  }
+
+  function store(Request $request)
+  {
+    if ($request->gift_wrap) {
+      $gift_wrap = 'YES';
+    } else {
+      $gift_wrap = 'NO';
+    }
+
+    $validator = Validator::make($request->all(), [
+      'parent_category' => 'required',
+      'service_name' => 'required',
+    ]);
+
+    if ($validator->passes()) {
+      $model = new Service();
+      $model->parent_category = $request->parent_category;
+      $model->subcategory = $request->subcategory;
+      $model->child_id = $request->childcategory;
+      $model->service_name = $request->service_name;
+      $model->product_tax = $request->product_tax;
+      $model->tax_include = $request->tax_include;
+      $model->length = $request->length;
+      $model->breadth = $request->breadth;
+      $model->height = $request->height;
+      $model->weight = $request->weight;
+      $model->sku = $request->sku;
+      $model->mfg_date = $request->mfg_date;
+      $model->expiry_date = $request->expiry_date;
+      $model->meta_title = $request->meta_title;
+      $model->seller_price = $request->whole_seller_price;
+      $model->related_product = json_encode($request->related_product);
+      $model->type_id = $request->type_id;
+      $model->key_feature = $request->key_feature;
+      $model->packing_type = $request->packing_type;
+      $model->disclaimer = $request->disclaimer;
+      $model->meta_keyword = $request->meta_keyword;
+      $model->meta_description = $request->meta_description;
+      $model->slug = str_replace(' ', '-', $request->slug);
+      $model->short_description = $request->short_description;
+      $model->description = $request->description;
+      $model->created_date = date('Y-m-d H:i:s');
+      $model->updated_date = date('Y-m-d H:i:s');
+      $model->status = 1;
+      $model->add_by = Auth::user()->id;
+      $model->gift_wrap = $gift_wrap;
+
+      if ($request->type_id == 10) {
+        $model->comdown_start = @$request->comdown_start;
+        $model->comdown_end = @$request->comdown_end;
+      }
+
+      $model->save();
+
+      //save image
+      if (!empty($request->image_id)) {
+        $tempImage = Media::find($request->image_id);
+        $extArray = explode('.', $tempImage->name);
+        $ext = last($extArray);
+
+        $newImageName = $model->id . time() . '.' . $ext;
+        $sPath = public_path() . '/temp/' . $tempImage->name;
+        $dPath = public_path() . '/uploads/service/' . $newImageName;
+        File::copy($sPath, $dPath);
+
+        //generate thumb
+        $dPath = public_path() . '/uploads/service/thumb/' . $newImageName;
+        $manager = new ImageManager(new Driver());
+        $img = $manager->read($sPath);
+        $img->cover(450, 600);
+        $img->save($dPath);
+
+        $model->image = $newImageName;
+        $model->save();
+      }
+
+      $id = $model->id;
+
+      $sale_price = $request->sale_price;
+      $item_mrp_price = $request->service_price;
+      $unit = $request->unit;
+      $type = $request->type;
+      $stock = $request->stock;
+      $color = $request->color;
+      $size = $request->size;
+      $unit_value = $request->unit_value;
+
+      if (array_filter($sale_price)) {
+        $item_image = $request->file('item_image');
+        if ($request->hasFile('item_image')) :
+          $image_item_data = array();
+          foreach ($item_image as $item):
+            $var = date_create();
+            $time = date_format($var, 'YmdHis');
+            $imageName = $time . '-' . $item->getClientOriginalName();
+            $destinationPath1 = public_path() . '/uploads/items/';
+            $item->move($destinationPath1, $imageName);
+            $image_item_data[] = $imageName;
+          endforeach;
+        endif;
+
+        foreach (array_filter($sale_price) as $key => $items) {
+          $item_array = array(
+            'item_price' => $sale_price[$key],
+            'item_mrp_price' => $item_mrp_price[$key],
+            'item_unit' => $unit[$key],
+            'type' => $type[$key],
+            'stock' => $stock[$key],
+            'color' => $color[$key],
+            'image' => $image_item_data[$key],
+            'size' => $size[$key],
+            'item_unit_value' => $unit_value[$key],
+            'product_id' => $id,
+            'short' => $key,
+          );
+          DB::table('product_items')->insert($item_array);
+        }
+      }
+
+      $images = $request->file('images');
+      if ($request->hasFile('images')) :
+        foreach ($images as $item):
+          $var = date_create();
+          $time = date_format($var, 'YmdHis');
+          $imageName = $time . '-' . $item->getClientOriginalName();
+          $destinationPath1 = public_path() . '/uploads/service/';
+          $item->move($destinationPath1, $imageName);
+          $image_data = array('product_id' => $id, 'image' => $imageName);
+          DB::table('product_images')->insert($image_data);
+        endforeach;
+      endif;
+
+      Session::flash('success', 'Service Added Successfully.');
+      return redirect()->route('admin.product');
+    } else {
+      Session::flash('error', 'Please fill the required fields.');
+      return redirect()->back()
+        ->withErrors($validator)
+        ->withInput();
+    }
+  }
+
+  function edit($id)
+  {
+    $data['tax_pay'] = DB::table('tax_pay')->get();
+
+    $data['types'] = Type::where(['status' => 1])->get();
+
+    $data['edit_data'] = Service::find($id);
+    $data['all_product'] = Service::all();
+    $data['gallery'] = DB::table('product_images')->where('product_id', $id)->get();
+    $data['items'] = DB::table('product_items')->where('product_id', $id)->get();
+
+    $data['category'] = Category::getCategory();
+    $data['subcategory'] = Category::getSubCategory($data['edit_data']->parent_category);
+    $data['child_category'] = Category::where('parent_id', $data['edit_data']->subcategory)->get();
+
+    $data['subattributes'] = DB::table('sub_attributes')->where('status', '1')->get();
+
+
+
+    //dd($data);
+
+    $data['page_title'] = 'Edit Product';
+    return view('admin.product.edit', $data);
+  }
+
+  function update(Request $request)
+  {
+    $id = $request->update_id;
+
+    if ($request->gift_wrap) {
+      $gift_wrap = 'YES';
+    } else {
+      $gift_wrap = 'NO';
+    }
+
+    $model = Service::findById($id);
+
+    $validator = Validator::make($request->all(), [
+      'parent_category' => 'required',
+      'service_name' => 'required',
+    ]);
+
+    if ($validator->passes()) {
+
+      $model->parent_category = $request->parent_category;
+      $model->subcategory = $request->subcategory;
+      $model->child_id = $request->childcategory;
+      $model->service_name = $request->service_name;
+      $model->product_tax = $request->product_tax;
+      $model->tax_include = $request->tax_include;
+      $model->length = $request->length;
+      $model->breadth = $request->breadth;
+      $model->height = $request->height;
+      $model->weight = $request->weight;
+      $model->sku = $request->sku;
+      $model->mfg_date = $request->mfg_date;
+      $model->expiry_date = $request->expiry_date;
+      $model->meta_title = $request->meta_title;
+      $model->seller_price = $request->whole_seller_price;
+      $model->related_product = json_encode($request->related_product);
+      $model->type_id = $request->type_id;
+      $model->key_feature = $request->key_feature;
+      $model->packing_type = $request->packing_type;
+      $model->disclaimer = $request->disclaimer;
+      $model->meta_keyword = $request->meta_keyword;
+      $model->meta_description = $request->meta_description;
+      $model->slug = str_replace(' ', '-', $request->slug);
+      $model->short_description = $request->short_description;
+      $model->description = $request->description;
+      $model->updated_date = date('Y-m-d H:i:s');
+      $model->status = 1;
+      $model->add_by = Auth::user()->id;
+      $model->gift_wrap = $gift_wrap;
+
+      if ($request->type_id == 10) {
+        $model->comdown_start = @$request->comdown_start;
+        $model->comdown_end = @$request->comdown_end;
+      }
+
+      $model->save();
+
+      $oldImage = $model->image;
+
+      //save image
+      if (!empty($request->image_id)) {
+        $tempImage = Media::find($request->image_id);
+        $extArray = explode('.', $tempImage->name);
+        $ext = last($extArray);
+
+        $newImageName = $model->id . time() . '.' . $ext;
+        $sPath = public_path() . '/temp/' . $tempImage->name;
+        $dPath = public_path() . '/uploads/service/' . $newImageName;
+        File::copy($sPath, $dPath);
+
+        //generate thumb
+        $dPath = public_path() . '/uploads/service/thumb/' . $newImageName;
+        $manager = new ImageManager(new Driver());
+        $img = $manager->read($sPath);
+        $img->cover(450, 600);
+        $img->save($dPath);
+
+        $model->image = $newImageName;
+        $model->save();
+
+        //delete old image
+        File::delete(public_path() . '/uploads/category/thumb/' . $oldImage);
+        File::delete(public_path() . '/uploads/category/' . $oldImage);
+      }
+
+      $sale_price = $request->sale_price;
+      $service_price = $request->service_price;
+      $unit = $request->unit;
+      $type = $request->type;
+      $stock = $request->stock;
+      $color = $request->color;
+      $minimum_order_qty = $request->minimum_order_qty;
+      $size = $request->size;
+      $item_id = $request->item_id;
+      $unit_value = $request->unit_value;
+
+      if ($item_id) {
+        $i = 1;
+        foreach ($item_id as $key => $items) {
+
+          $check_items = DB::table('product_items')->where('id', $items)->first();
+          $item_array = array(
+            'item_price' => $sale_price[$key],
+            'item_mrp_price' => $service_price[$key],
+            'item_unit' => $unit[$key],
+            'minimum_order_qty' => $minimum_order_qty[$key],
+            'type' => $type[$key],
+            'stock' => $stock[$key],
+            'color' => $color[$key],
+            'size' => $size[$key],
+            'item_unit_value' => $unit_value[$key],
+            'product_id' => $id,
+            'short' => $i,
+          );
+
+          if ($check_items) {
+            DB::table('product_items')->where('product_id', $id)->where('id', @$item_id[$key])->update($item_array);
+          }
+          $i++;
+        }
+      }
+
+      $images = $request->file('images');
+      if ($request->hasFile('images')) :
+        foreach ($images as $item):
+          $var = date_create();
+          $time = date_format($var, 'YmdHis');
+          $imageName = $time . '-' . $item->getClientOriginalName();
+          $destinationPath1 = public_path() . '/uploads/service/';
+          $item->move($destinationPath1, $imageName);
+          $image_data = array('product_id' => $id, 'image' => $imageName);
+          DB::table('product_images')->insert($image_data);
+        endforeach;
+      endif;
+
+      Session::flash('success', 'Service update Successfully....');
+      return redirect()->route('admin.product.edit', $id);
+    } else {
+      Session::flash('error', 'Please fill the required fields.');
+      return redirect()->back()
+        ->withErrors($validator)
+        ->withInput();
+    }
+  }
+
+  function view($id)
+  {
+    $data['edit_data'] = Service::find($id);
+    $data['category'] = Category::all();
+    $data['page_title'] = 'View Product';
+    return view('admin.product.view', $data);
+  }
+
+  function active($id)
+  {
+    $data = array('status' => '0');
+    DB::table('services')->where('id', $id)->update($data);
+    Session::flash('success', 'Status Update successfully...');
+    return redirect()->route('admin.product');
+  }
+
+  function deactive($id)
+  {
+    $data = array('status' => '1');
+    DB::table('services')->where('id', $id)->update($data);
+    Session::flash('success', 'Status Update successfully...');
+    return redirect()->route('admin.product');
+  }
 
   public function get_child_category_by_ajax(Request $request)
   {
@@ -41,36 +404,13 @@ class ProductController extends Controller
   }
 
 
-  function add_product()
-  {
 
-    $data['category'] = Category_model::all();
-    $data['tax_pay'] = DB::table('tax_pay')->get();
-    $type_data = Type::where(['status' => 1])->get();
-    $types = array('' => 'Select Type');
-    foreach ($type_data as $type) {
-      $types[$type->id] = $type->name;
-    }
-
-    $role_customers = Sentinel::findRoleBySlug('vendor');
-    $customers = $role_customers->users()->get();
-    $data['vendors'] = $customers;
-    $data['types'] = $types;
-    $data['page_title'] = 'Add Service';
-    $data['all_product'] = ServiceModel::all();
-    $data['subattributes'] = DB::table('sub_attributes')->where('status', '1')->get();
-
-    $data['custom_city'] = DB::table('tbl_custom_city')->where('status', '1')->get();
-    $data['country'] = DB::table('countries')->get();
-
-    return view('admin/add_product', $data);
-  }
 
 
   function get_subcategory(Request $request)
   {
     $parent_id = $request->cat;
-    $data = Category_model::where('parent_id', $parent_id)->get();
+    $data = Category::where('parent_id', $parent_id)->get();
     echo "<option value=''>Select Subcategory</option>";
     foreach ($data as $key => $value) {
       echo "<option value='" . $value->id . "'>" . $value->category_name . "</option>";
@@ -120,258 +460,28 @@ class ProductController extends Controller
      <b>Address</b>: ' . $data->address . ',
      ';
   }
-  function base_url()
+
+
+
+
+
+
+
+
+  function productDelete($id)
   {
-    $base_url = $_SERVER["DOCUMENT_ROOT"];
-    return $base_url;
-  }
-
-  function insert_service(Request $request)
-  {
-
-    if ($request->gift_wrap) {
-      $gift_wrap = 'YES';
-    } else {
-      $gift_wrap = 'NO';
-    }
-
-    $custom_city_id = $request->custom_city;
-    $pincode_id = json_encode($request->postalcode);
-
-    if ($request->parent_category && @$request->service_name) {
-
-      if ($request->hasFile('image')) {
-        $image = $request->file('image');
-        $image_name_product = time() . '.' . $image->getClientOriginalExtension();
-        $destinationPath = $this->base_url() . '/uploads/service/';
-        $image->move($destinationPath, $image_name_product);
-      }
-
-      $data = array(
-        'parent_category' => $request->parent_category,
-        'subcategory' => $request->subcategory,
-        'child_id' => $request->childcategory,
-        'service_name' => $request->service_name,
-        'product_tax' => @$request->product_tax,
-        'tax_include' => @$request->tax_include,
-        'length' => @$request->length,
-        'breadth' => @$request->breadth,
-        'height' => @$request->height,
-        'weight' => @$request->weight,
-        'sku' => @$request->sku,
-        'mfg_date' => @$request->mfg_date,
-        'expiry_date' => @$request->expiry_date,
-        'country_origin' => @$request->country_origin,
-        'meta_title' => $request->meta_title,
-        'seller_price' => @$request->whole_seller_price,
-        'related_product' => json_encode($request->related_product),
-        'type_id' => $request->type_id,
-        'custom_city_id' => $custom_city_id,
-        'pincode_id' => $pincode_id,
-        'key_feature' => $request->key_feature,
-        'packing_type' => $request->packing_type,
-        'disclaimer' => $request->disclaimer,
-        'meta_keyword' => $request->meta_keyword,
-        'meta_description' => $request->meta_description,
-        'slug' => str_replace(' ', '-', $request->slug),
-        'short_description' => $request->short_description,
-        'description' => $request->description,
-        'created_date' => date('Y-m-d H:i:s'),
-        'updated_date' => date('Y-m-d H:i:s'),
-        'image' => @$image_name_product,
-        'status' => '1',
-        'add_by' => isset($request->vendors) ? $request->vendors : $users = Sentinel::getUser()->id,
-        'gift_wrap' => $gift_wrap,
-      );
-
-      if ($request->type_id == 10) {
-        $data['comdown_start'] = @$request->comdown_start;
-        $data['comdown_end'] = @$request->comdown_end;
-      }
-
-      $id = DB::table('services')->insertGetId($data);
-
-      $sale_price = $request->sale_price;
-      $item_mrp_price = $request->service_price;
-      $unit = $request->unit;
-      $type = $request->type;
-      $stock = $request->stock;
-      $color = $request->color;
-      $size = $request->size;
-      $unit_value = $request->unit_value;
-      // DB::table('product_items')->where('product_id',$id)->delete();
-      if (array_filter($sale_price)) {
-        $item_image = $request->file('item_image');
-
-        if ($request->hasFile('item_image')) :
-          $image_item_data = array();
-          foreach ($item_image as $item):
-            $var = date_create();
-            $time = date_format($var, 'YmdHis');
-            $imageName = $time . '-' . $item->getClientOriginalName();
-            $destinationPath1 = $this->base_url() . '/uploads/items/';
-            $item->move($destinationPath1, $imageName);
-            $image_item_data[] = $imageName;
-          endforeach;
-        else:
-
-        endif;
-        // print_r($image_item_data); die;
-
-
-        foreach (array_filter($sale_price) as $key => $items) {
-          $item_array = array(
-            'item_price' => $sale_price[$key],
-            'item_mrp_price' => $item_mrp_price[$key],
-            'item_unit' => $unit[$key],
-            'type' => $type[$key],
-            'stock' => $stock[$key],
-            'color' => $color[$key],
-            'image' => $image_item_data[$key],
-            'size' => $size[$key],
-            'item_unit_value' => $unit_value[$key],
-            'product_id' => $id,
-            'short' => $key,
-          );
-          DB::table('product_items')->insert($item_array);
-        }
-      }
-      $images = $request->file('images');
-      if ($request->hasFile('images')) :
-        foreach ($images as $item):
-          $var = date_create();
-          $time = date_format($var, 'YmdHis');
-          $imageName = $time . '-' . $item->getClientOriginalName();
-          $destinationPath1 = $this->base_url() . '/uploads/service/';
-          $item->move($destinationPath1, $imageName);
-          $image_data = array('product_id' => $id, 'image' => $imageName);
-          DB::table('product_images')->insert($image_data);
-
-        endforeach;
-
-      else:
-
-      endif;
-
-      if (isset($request->postalcode)) {
-        foreach ($request->postalcode as $value) {
-          DB::table('product_area_pincode')->insert([
-            "product_id" => $id,
-            "pincode" => $value
-          ]);
-        }
-      }
-
-      Session::flash('success', 'Serive insert Successfully....');
-      return Redirect('admin/add_product');
-    } else {
-      Session::flash('error', 'All Star fields are required...');
-      return $this->add_product();
-    }
-  }
-
-  function index()
-  {
-    $slug = Auth::user()->role_id;
-    if ($slug == User::VENDOR) {
-      $users = Auth::user()->id;
-      $data['product_list'] = DB::table('services')
-        ->select('services.*', 'categories.category_name', 'sb.category_name as subcategory_name', 'users.name')
-        ->where('services.add_by', $users)
-        ->leftJoin('categories', 'services.parent_category', '=', 'categories.id')
-        ->leftJoin('categories as sb', 'services.subcategory', '=', 'sb.id')
-        ->leftJoin('users', 'services.add_by', '=', 'users.id')
-        ->orderBy('services.id', 'desc')
-        ->get();
-    } else {
-      $data['product_list'] = DB::table('services')
-        ->select('services.*', 'categories.category_name', 'sb.category_name as subcategory_name', 'users.name')
-        ->leftJoin('categories', 'services.parent_category', '=', 'categories.id')
-        ->leftJoin('categories as sb', 'services.subcategory', '=', 'sb.id')
-        ->leftJoin('users', 'services.add_by', '=', 'users.id')
-        ->orderBy('services.id', 'desc')
-        ->get();
-    }
-
-    //dd($data);
-
-    $data['page_title'] = 'All Products';
-    return view('admin.product.index', $data);
-  }
-
-
-  function product_active($id)
-  {
-    $data = array('status' => '0');
-    DB::table('services')->where('id', $id)->update($data);
-    Session::flash('success', 'Status Update successfully...');
-    return Redirect('admin/product_list');
-  }
-  function product_deactive($id)
-  {
-    $data = array('status' => '1');
-    DB::table('services')->where('id', $id)->update($data);
-    Session::flash('success', 'Status Update successfully...');
-    return Redirect('admin/product_list');
-  }
-  function product_delete($id)
-  {
-
-    $edit_data = ServiceModel::find($id);
-    $image_path = public_path('uploads/service/' . $edit_data->image);
-    if ($edit_data->image) {
-      if (file_exists($image_path)) {
-        unlink($image_path);
-      }
-    }
+    $edit_data = Service::find($id);
+    File::delete(public_path() . '/uploads/service/thumb/' . $edit_data->image);
+    File::delete(public_path() . '/uploads/service/' . $edit_data->image);
     DB::table('services')->where('id', $id)->delete();
     Session::flash('success', 'Delete successfully...');
-    return Redirect('admin/product_list');
-  }
-
-  function edit_product($id)
-  {
-
-
-    $data['tax_pay'] = DB::table('tax_pay')->get();
-    $type_data = Type::where(['status' => 1])->get();
-    $types = array();
-    foreach ($type_data as $type) {
-      $types[$type->id] = $type->name;
-    }
-
-    $data['types'] = $types;
-
-    $data['edit_data'] = ServiceModel::find($id);
-    $data['all_product'] = ServiceModel::all();
-    $data['gallery'] = DB::table('product_images')->where('product_id', $id)->get();
-    $data['items'] = DB::table('product_items')->where('product_id', $id)->get();
-    $data['category'] = Category_model::all();
-    $data['subattributes'] = DB::table('sub_attributes')->where('status', '1')->get();
-    $role_customers = Sentinel::findRoleBySlug('vendor');
-    $customers = $role_customers->users()->get();
-    $data['vendors'] = $customers;
-    ///print_r( $data['subattributes']); die;
-    $data['custom_city'] = DB::table('tbl_custom_city')->where('status', '1')->get();
-
-    $data['country'] = DB::table('countries')->get();
-    $data['child_category'] = Category_model::where('parent_id', $data['edit_data']->subcategory)->get();
-
-    //dd($data);
-
-    $data['page_title'] = 'Edit Product';
-    return view('admin/edit_product', $data);
+    return redirect()->route('admin.product');
   }
 
 
-  function view_product($id)
-  {
 
-    $data['edit_data'] = ServiceModel::find($id);
-    $data['category'] = Category_model::all();
-    $data['page_title'] = 'View Product';
-    return view('admin/view_product', $data);
-  }
+
+
 
   public function store1(request $request)
   {
@@ -388,255 +498,19 @@ class ProductController extends Controller
   }
 
 
-  function update_service(Request $request)
-  {
 
-    //return $request->child_category;
-
-    //dd($request->all());
-
-    $id = $request->update_id;
-    $base_url = $_SERVER["DOCUMENT_ROOT"];
-
-    $custom_city_id = $request->custom_city;
-    $pincode_id = json_encode($request->postalcode);
-
-    if ($request->parent_category && $request->service_name && $request->service_price) {
-
-
-      $images = $request->file('images');
-      if ($request->hasFile('images')) :
-        foreach ($images as $item):
-          $var = date_create();
-          $time = date_format($var, 'YmdHis');
-          $imageName = $time . '-' . $item->getClientOriginalName();
-          $destinationPath1 = $this->base_url() . '/uploads/service/';
-          $item->move($destinationPath1, $imageName);
-          $image_data = array('product_id' => $id, 'image' => $imageName);
-          DB::table('product_images')->insert($image_data);
-
-        endforeach;
-
-      else:
-
-      endif;
-
-      if ($request->hasFile('image')) {
-        $image = $request->file('image');
-        $image_name_product = time() . '.' . $image->getClientOriginalExtension();
-
-        $destinationPath = $this->base_url() . '/uploads/service/';
-        $image->move($destinationPath, $image_name_product);
-        $edit_data = ServiceModel::find($id);
-        $image_path = $this->base_url() . '/uploads/service/' . $edit_data->image;
-        if ($edit_data->image) {
-          if (file_exists($image_path)) {
-            unlink($image_path);
-          }
-        }
-      }
-      if (@$image_name_product) {
-
-        $data = array(
-          'parent_category' => $request->parent_category,
-          'subcategory' => $request->subcategory,
-          'child_id' => $request->child_category,
-          'service_name' => $request->service_name,
-          'product_tax' => @$request->product_tax,
-          'tax_include' => @$request->tax_include,
-          'sku' => @$request->sku,
-          'mfg_date' => @$request->mfg_date,
-          'expiry_date' => @$request->expiry_date,
-          'country_origin' => @$request->country_origin,
-          'related_product' => json_encode($request->related_product),
-          'meta_title' => $request->meta_title,
-          'seller_price' => @$request->whole_seller_price,
-          'custom_city_id' => @$custom_city_id,
-          'pincode_id' => @$pincode_id,
-          'type_id' => $request->type_id,
-          'key_feature' => $request->key_feature,
-          'packing_type' => $request->packing_type,
-          'disclaimer' => $request->disclaimer,
-          'meta_keyword' => $request->meta_keyword,
-          'meta_description' => $request->meta_description,
-          'slug' => str_replace(' ', '-', $request->slug),
-          'short_description' => $request->short_description,
-          'description' => $request->description,
-          'updated_date' => date('Y-m-d H:i:s'),
-          'image' => @$image_name_product,
-          'add_by' => isset($request->vendors) ? $request->vendors : $users = Sentinel::getUser()->id,
-        );
-      } else {
-        $data = array(
-          'parent_category' => $request->parent_category,
-          'subcategory' => $request->subcategory,
-          'child_id' => $request->child_category,
-          'service_name' => $request->service_name,
-          'product_tax' => @$request->product_tax,
-          'tax_include' => @$request->tax_include,
-          'sku' => @$request->sku,
-          'mfg_date' => @$request->mfg_date,
-          'expiry_date' => @$request->expiry_date,
-          'country_origin' => @$request->country_origin,
-          'related_product' => json_encode($request->related_product),
-          'meta_title' => $request->meta_title,
-          'seller_price' => @$request->whole_seller_price,
-          'custom_city_id' => @$custom_city_id,
-          'pincode_id' => @$pincode_id,
-          'type_id' => $request->type_id,
-          'key_feature' => $request->key_feature,
-          'packing_type' => $request->packing_type,
-          'disclaimer' => $request->disclaimer,
-          'meta_keyword' => $request->meta_keyword,
-          'meta_description' => $request->meta_description,
-          'slug' => str_replace(' ', '-', $request->slug),
-          'short_description' => $request->short_description,
-          'description' => $request->description,
-          'updated_date' => date('Y-m-d H:i:s'),
-          'add_by' => isset($request->vendors) ? $request->vendors : $users = Sentinel::getUser()->id,
-        );
-      }
-
-
-      if ($request->type_id == 10) {
-        $data['comdown_start'] = @$request->comdown_start;
-        $data['comdown_end'] = @$request->comdown_end;
-      }
-
-      //dd($data);
-
-      DB::table('services')->where('id', $id)->update($data);
-
-      $sale_price = ($request->sale_price);
-      $service_price = ($request->service_price);
-      $unit = ($request->unit);
-      $type = $request->type;
-      $stock = $request->stock;
-      $color = $request->color;
-      $minimum_order_qty = $request->minimum_order_qty;
-      $size = $request->size;
-      $item_id = ($request->item_id);
-      ///print_r($item_id); die;
-      $unit_value = ($request->unit_value);
-      //DB::table('product_items')->where('product_id',$id)->delete();
-      if (($item_id)) {
-
-        /*$item_image = $request->file('item_image');
-            if ($request->hasFile('item_image')) :
-                $image_item_data=array();
-                $z=0;
-                    foreach ($item_image as $item):
-                        $var = date_create();
-                        $time = date_format($var, 'YmdHis');
-                        $imageName1 = $z.$time . '-' . $item->getClientOriginalName();
-                        $destinationPath1 = $this->base_url().'/uploads/items/';
-                        $item->move($destinationPath1, $imageName1);
-                         $image_item_data[]=$imageName1;
-                    $z++;
-                    endforeach;
-            else:
-                    
-            endif;*/
-        $i = 1;
-        foreach (($item_id) as $key => $items) {
-          // echo $key;  echo "<br>"; echo $image_item_data[$key]; die;
-          $check_items = DB::table('product_items')->where('id', $items)->first();
-          //$check_items_array=$check_items->toArray();
-          /*echo "<pre>";
-             print_r($items); 
-             print_r($check_items); 
-             if(@$image_item_data[$key]){
-              $item_array=array(
-                   
-                    'item_price'=>$sale_price[$key],
-                    'item_mrp_price'=>$service_price[$key],
-                    'item_unit'=>$unit[$key],
-                    'minimum_order_qty'=>$minimum_order_qty[$key],
-                    'type'=>$type[$key],
-                    'stock'=>$stock[$key],
-                    'color'=>$color[$key],
-                    'image'=>$image_item_data[$key],
-                    'size'=>$size[$key],
-                    'item_unit_value'=>$unit_value[$key],
-                    'product_id'=>$id,
-                    'short'=>$i,
-                  );
-             }else{*/
-          $item_array = array(
-
-            'item_price' => $sale_price[$key],
-            'item_mrp_price' => $service_price[$key],
-            'item_unit' => $unit[$key],
-            'minimum_order_qty' => $minimum_order_qty[$key],
-            'type' => $type[$key],
-            'stock' => $stock[$key],
-            'color' => $color[$key],
-            'size' => $size[$key],
-            'item_unit_value' => $unit_value[$key],
-            'product_id' => $id,
-            'short' => $i,
-          );
-          //}
-
-          if ($check_items) {
-
-            DB::table('product_items')->where('product_id', $id)->where('id', @$item_id[$key])->update($item_array);
-          } else {
-
-            //DB::table('product_items')->insert($item_array);
-          }
-          $i++;
-        }
-        //die;
-      }
-
-
-      //$POSTALCODE = $request->postalcode;
-
-      $avi = DB::table('product_area_pincode')->where('product_id', $id)->get();
-
-      if (!empty($avi)) {
-        DB::table('product_area_pincode')->where('product_id', $id)->delete();
-        if (isset($request->postalcode)) {
-          foreach ($request->postalcode as $value) {
-            DB::table('product_area_pincode')->insert([
-              "product_id" => $id,
-              "pincode" => $value
-            ]);
-          }
-        }
-      } else {
-        foreach ($request->postalcode as $value) {
-          DB::table('product_area_pincode')->insert([
-            "product_id" => $id,
-            "pincode" => $value
-          ]);
-        }
-      }
-
-      Session::flash('success', 'Product Update Successfully....');
-      return Redirect('admin/edit_product/' . $id);
-    } else {
-      Session::flash('error', 'All Star fields are required...');
-      return $this->edit_product($id);
-    }
-  }
 
   function uploadvariantimages(Request $request)
   {
-
-    //return $request->variant_id; 
-
-    $images = $request->file('file');
     $variant_id = $request->variant_id;
     if ($request->hasFile('file')) {
       $image = $request->file('file');
       $image_name_product = time() . '.' . $image->getClientOriginalExtension();
       //return $image_name_product;
-      $destinationPath = $this->base_url() . '/uploads/items/';
+      $destinationPath = public_path() . '/uploads/items/';
       $image->move($destinationPath, $image_name_product);
       $edit_data = DB::table('product_items')->where('id', $variant_id)->first();
-      $image_path = $this->base_url() . '/uploads/items/' . $edit_data->image;
+      $image_path = public_path() . '/uploads/items/' . $edit_data->image;
       if ($edit_data->image) {
         if (file_exists($image_path)) {
           unlink($image_path);
@@ -740,7 +614,7 @@ class ProductController extends Controller
             <input type="file" name="images" id="variant_image' . $id . '" data-id="' . $id . '"   class="form-control variantimageupload"></div>
             <div class="col-lg-2 col-6">
                 <br>
-                <a href="#" class="btn btn-primary btn-sm remove_items">Remove</a>
+                <a href="javascript:void(0);" class="btn btn-primary btn-sm remove_items">Remove</a>
                 </div>
             </div>
             <hr>

@@ -412,6 +412,7 @@ class ShopController extends Controller
 
 
 
+        $product = [];
         foreach ($best_seller_product as $product_data) {
 
 

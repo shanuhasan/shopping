@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Product Detail')
 @section('content')
 
     <section class="breadcrumb-area">
@@ -23,7 +24,7 @@
                         <div class="col-md-5">
                             <div class="product-detail-slider text-center">
                                 <div class="item">
-                                    <img src="{{ url('/') }}/{{ $product_details['image'] }}" class="img-fluid" />
+                                    <img src="{{ $product_details['image'] }}" class="img-fluid" />
                                 </div>
 
                                 @if (!empty($product_details['product_slider']))
@@ -33,7 +34,6 @@
                                         </div>
                                     @endforeach
                                 @endif
-                                <!--<img src="{{ url('/') }}/{{ $product_details['image'] }}" class="img-fluid" /> -->
                             </div>
                         </div>
                         <div class="col-md-7">
@@ -95,9 +95,9 @@
                                             <td> {{ $product_details['stock'] }} </td>
                                         </tr>
                                         <!-- <tr>
-             <td>Delivery</td>
-             <td>in 7-9 days </td>
-            </tr> -->
+                                                 <td>Delivery</td>
+                                                 <td>in 7-9 days </td>
+                                                </tr> -->
                                     </tbody>
                                 </table>
 
