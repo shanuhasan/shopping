@@ -4,9 +4,11 @@ namespace App\Http\Controllers\admin;
 
 use Sentinel;
 use App\Models\Type;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Models\VendorModel as VendorModel;
 use App\Models\ServiceModel as ServiceModel;
@@ -19,7 +21,7 @@ class ProductController extends Controller
   {
 
     $value_d = $request->value;
-    $data = DB::table('tbl_categories')->where('parent_id', $value_d)->get();
+    $data = DB::table('categories')->where('parent_id', $value_d)->get();
     echo "<option value=''>select child category</option>";
     foreach ($data as $key => $value) {
       echo "<option value='" . $value->id . "'>" . $value->category_name . "</option>";
@@ -80,7 +82,7 @@ class ProductController extends Controller
     $data = VendorModel::where('parent_category', $parent_id)->get();
     echo "<option value=''>Select Vendor</option>";
     foreach ($data as $key => $value) {
-      echo "<option value='" . $value->id . "'>" . $value->first_name . " " . $value->last_name . "</option>";
+      echo "<option value='" . $value->id . "'>" . $value->name . " " . $value->last_name . "</option>";
     }
   }
   function get_service_bysubcategory(Request $request)
@@ -113,7 +115,7 @@ class ProductController extends Controller
     $id = $request->vendor_id;
     $data = VendorModel::find($id);
     echo '
-     <b>Name</b>: ' . $data->first_name . '  ' . $data->last_name . ',
+     <b>Name</b>: ' . $data->name . '  ' . $data->last_name . ',
      <b>Phone</b>: ' . $data->phone . ',
      <b>Address</b>: ' . $data->address . ',
      ';
@@ -187,7 +189,7 @@ class ProductController extends Controller
         $data['comdown_end'] = @$request->comdown_end;
       }
 
-      $id = DB::table('tbl_services')->insertGetId($data);
+      $id = DB::table('services')->insertGetId($data);
 
       $sale_price = $request->sale_price;
       $item_mrp_price = $request->service_price;
@@ -268,48 +270,47 @@ class ProductController extends Controller
     }
   }
 
-  function product_list()
+  function index()
   {
-    $slug = Sentinel::getUser()->roles()->first()->slug;
-    if ($slug == 'vendor') {
-
-      $users = Sentinel::getUser()->id;
-      $data['product_list'] = DB::table('tbl_services')
-        ->select('tbl_services.*', 'tbl_categories.category_name', 'sb.category_name as subcategory_name', 'users.first_name', 'users.last_name')
-        ->where('tbl_services.add_by', $users)
-        ->leftJoin('tbl_categories', 'tbl_services.parent_category', '=', 'tbl_categories.id')
-        ->leftJoin('tbl_categories as sb', 'tbl_services.subcategory', '=', 'sb.id')
-        ->leftJoin('users', 'tbl_services.add_by', '=', 'users.id')
-        ->orderBy('tbl_services.id', 'desc')
+    $slug = Auth::user()->role_id;
+    if ($slug == User::VENDOR) {
+      $users = Auth::user()->id;
+      $data['product_list'] = DB::table('services')
+        ->select('services.*', 'categories.category_name', 'sb.category_name as subcategory_name', 'users.name')
+        ->where('services.add_by', $users)
+        ->leftJoin('categories', 'services.parent_category', '=', 'categories.id')
+        ->leftJoin('categories as sb', 'services.subcategory', '=', 'sb.id')
+        ->leftJoin('users', 'services.add_by', '=', 'users.id')
+        ->orderBy('services.id', 'desc')
         ->get();
     } else {
-      $data['product_list'] = DB::table('tbl_services')
-        ->select('tbl_services.*', 'tbl_categories.category_name', 'sb.category_name as subcategory_name', 'users.first_name', 'users.last_name')
-        ->leftJoin('tbl_categories', 'tbl_services.parent_category', '=', 'tbl_categories.id')
-        ->leftJoin('tbl_categories as sb', 'tbl_services.subcategory', '=', 'sb.id')
-        ->leftJoin('users', 'tbl_services.add_by', '=', 'users.id')
-        ->orderBy('tbl_services.id', 'desc')
+      $data['product_list'] = DB::table('services')
+        ->select('services.*', 'categories.category_name', 'sb.category_name as subcategory_name', 'users.name')
+        ->leftJoin('categories', 'services.parent_category', '=', 'categories.id')
+        ->leftJoin('categories as sb', 'services.subcategory', '=', 'sb.id')
+        ->leftJoin('users', 'services.add_by', '=', 'users.id')
+        ->orderBy('services.id', 'desc')
         ->get();
     }
 
     //dd($data);
 
     $data['page_title'] = 'All Products';
-    return view('admin/product_list', $data);
+    return view('admin.product.index', $data);
   }
 
 
   function product_active($id)
   {
     $data = array('status' => '0');
-    DB::table('tbl_services')->where('id', $id)->update($data);
+    DB::table('services')->where('id', $id)->update($data);
     Session::flash('success', 'Status Update successfully...');
     return Redirect('admin/product_list');
   }
   function product_deactive($id)
   {
     $data = array('status' => '1');
-    DB::table('tbl_services')->where('id', $id)->update($data);
+    DB::table('services')->where('id', $id)->update($data);
     Session::flash('success', 'Status Update successfully...');
     return Redirect('admin/product_list');
   }
@@ -323,7 +324,7 @@ class ProductController extends Controller
         unlink($image_path);
       }
     }
-    DB::table('tbl_services')->where('id', $id)->delete();
+    DB::table('services')->where('id', $id)->delete();
     Session::flash('success', 'Delete successfully...');
     return Redirect('admin/product_list');
   }
@@ -504,7 +505,7 @@ class ProductController extends Controller
 
       //dd($data);
 
-      DB::table('tbl_services')->where('id', $id)->update($data);
+      DB::table('services')->where('id', $id)->update($data);
 
       $sale_price = ($request->sale_price);
       $service_price = ($request->service_price);
@@ -758,7 +759,7 @@ class ProductController extends Controller
 
     $slugUser = Sentinel::getUser()->roles()->first()->slug;
 
-    $search = DB::table('tbl_services');
+    $search = DB::table('services');
 
     if ($slugUser == 'vendor') {
 
@@ -767,43 +768,43 @@ class ProductController extends Controller
     }
 
 
-    $rows['results'] = $search->where("tbl_services.service_name", "LIKE", "%{$term}%")
-      ->orWhere("tbl_services.description", "LIKE", "%{$term}%")
-      ->orWhere("tbl_services.meta_title", "LIKE", "%{$term}%")
-      ->orWhere("tbl_services.slug", "LIKE", "%{$term}%")
-      ->orWhere("tbl_services.meta_keyword", "LIKE", "%{$term}%")
+    $rows['results'] = $search->where("services.service_name", "LIKE", "%{$term}%")
+      ->orWhere("services.description", "LIKE", "%{$term}%")
+      ->orWhere("services.meta_title", "LIKE", "%{$term}%")
+      ->orWhere("services.slug", "LIKE", "%{$term}%")
+      ->orWhere("services.meta_keyword", "LIKE", "%{$term}%")
       ->orWhere("product_items.item_unit_value", "LIKE", "%{$term}%")
       ->orWhere("product_items.item_unit", "LIKE", "%{$term}%")
       ->offset($page)->limit($request->limit)
       ->select(DB::raw("
-                            tbl_services.id,product_items.id as item_id, 
-                            concat(tbl_services.service_name,' ',product_items.item_unit_value,' ',product_items.item_unit) as text,
+                            services.id,product_items.id as item_id, 
+                            concat(services.service_name,' ',product_items.item_unit_value,' ',product_items.item_unit) as text,
                             product_items.item_unit_value,
                             product_items.item_unit
                             "))
-      ->leftJoin('product_items', 'tbl_services.id', '=', 'product_items.product_id')
+      ->leftJoin('product_items', 'services.id', '=', 'product_items.product_id')
       ->get();
 
     //  $rows['results']= $search->whereLike([
-    //                         "tbl_services.description",
-    //                         "tbl_services.description",
-    //                         "tbl_services.meta_title",
-    //                         "tbl_services.slug",
-    //                         "tbl_services.meta_keyword",
+    //                         "services.description",
+    //                         "services.description",
+    //                         "services.meta_title",
+    //                         "services.slug",
+    //                         "services.meta_keyword",
     //                         "product_items.item_unit_value",
     //                         "product_items.item_unit",
     //                         ], $term)
     //                         ->offset($page)->limit($request->limit)
     //                         ->select(DB::raw("
-    //                         tbl_services.id,product_items.id as item_id,
-    //                         concat(tbl_services.service_name,' ',product_items.item_unit_value,' ',product_items.item_unit) as text,
+    //                         services.id,product_items.id as item_id,
+    //                         concat(services.service_name,' ',product_items.item_unit_value,' ',product_items.item_unit) as text,
     //                         product_items.item_unit_value,
     //                         product_items.item_unit
     //                         "))
-    //                         ->leftJoin('product_items', 'tbl_services.id', '=', 'product_items.product_id')
+    //                         ->leftJoin('product_items', 'services.id', '=', 'product_items.product_id')
     //                         ->get();
 
-    $count = count(DB::table('tbl_services')->where("service_name", "LIKE", "%{$term}%")->orWhere("description", "LIKE", "%{$term}%")->orWhere("meta_title", "LIKE", "%{$term}%")->orWhere("slug", "LIKE", "%{$term}%")->orWhere("meta_keyword", "LIKE", "%{$term}%")->get());
+    $count = count(DB::table('services')->where("service_name", "LIKE", "%{$term}%")->orWhere("description", "LIKE", "%{$term}%")->orWhere("meta_title", "LIKE", "%{$term}%")->orWhere("slug", "LIKE", "%{$term}%")->orWhere("meta_keyword", "LIKE", "%{$term}%")->get());
     $rows['total_count'] = $count;
     $rows['incomplete_results'] = $count > 0 ? true : false;
     return response()->json($rows);

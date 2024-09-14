@@ -49,6 +49,13 @@
                 </li>
 
                 <li class="nav-item">
+                    <a href="{{ route('admin.product') }}" class="nav-link @yield('product')">
+                        <i class="nav-icon fas fa-circle"></i>
+                        <p>Products</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
                     <a href="{{ url('admin/attribute') }}" class="nav-link @yield('attributes')">
                         <i class="nav-icon fas fa-circle"></i>
                         Product Attribute
@@ -61,12 +68,7 @@
                     </a>
                 </li>
 
-                <li class="nav-item {!! Route::getFacadeRoot()->current()->uri() == 'admin/product_list' ? 'active' : '' !!}">
-                    <a href="{{ url('admin/product_list') }}" class="nav-link">
-                        <i class="nav-icon fas fa-circle"></i>
-                        <p>Products</p>
-                    </a>
-                </li>
+
 
 
                 <li class="nav-item {!! Route::getFacadeRoot()->current()->uri() == 'admin/offers' ? 'active' : '' !!}">

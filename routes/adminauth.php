@@ -56,6 +56,9 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'],
 
 
     //Products
+
+    Route::get('/product', [ProductController::class, 'index'])->name('product');
+
     Route::get('/attribute', [ProductController::class, 'attribute'])->name('attribute');
     Route::get('/attribute_varition_configer/{id}/{varition?}', [ProductController::class, 'attribute_varition_configer'])->name('attribute_varition_configer');
     Route::post('/add_varition', [ProductController::class, 'add_varition'])->name('add_varition');
