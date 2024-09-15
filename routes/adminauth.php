@@ -102,6 +102,15 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'],
 
     //order
     Route::get('/order', [OrderController::class, 'index'])->name('order.index');
+    Route::get('/orders', [OrderController::class, 'orders'])->name('order.orders');
+    Route::post('/filter_orders', [OrderController::class, 'filter_orders'])->name('order.filter_orders');
+
+    Route::get('/print_invoice_pdf/{id}', [OrderController::class, 'print_invoice_pdf'])->name('order.print_invoice_pdf');
+    Route::get('/print_invoice_multiple/{id}', [OrderController::class, 'print_invoice_multiple'])->name('order.print_invoice_multiple');
+    Route::get('/print_invoice_items/{id}', [OrderController::class, 'print_invoice_items'])->name('order.print_invoice_items');
+    Route::get('/print_invoice_list/{id}', [OrderController::class, 'print_invoice_list'])->name('order.print_invoice_list');
+    Route::get('/export_order/{id}', [OrderController::class, 'export_order'])->name('order.export_order');
+
 
     Route::post('/upload-image', [UploadImageController::class, 'create'])->name('media.create');
 

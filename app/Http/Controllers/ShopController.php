@@ -898,8 +898,6 @@ class ShopController extends Controller
         return view('bulk_purchase', $data);
     }
 
-
-
     function search_product(Request $request)
     {
 
@@ -907,7 +905,7 @@ class ShopController extends Controller
         $gerUrl = request('q');
         $seach_data = $gerUrl;
 
-        $data['category'] = Category_model::all();
+        $data['category'] = Category::all();
 
         if (request()->has('q')) {
             if (request('q') != null) {
@@ -938,7 +936,7 @@ class ShopController extends Controller
         $data['all_products'] = $product_array;
         $data['search_value'] = $seach_data;
 
-        return view('shop-1', $data);
+        return view('frontend.shop-1', $data);
     }
 
 

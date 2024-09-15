@@ -198,32 +198,15 @@ class OrderController extends Controller
             "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
             "Expires"             => "0"
         );
-        $slug = Sentinel::getUser()->roles()->first()->slug;
-
-        if ($slug == 'super_admin') {
-            $data_lsit = array();
-            $data_lsit = Order::orderBy('id', 'DESC')->whereIn('id', $array)->get();
-            foreach ($data_lsit as $key => $value) {
-                $data_lsit[$key]->get_items = $this->get_order_item($value->id);
-            }
-            $data = $data_lsit;
-        } else {
-            $users = Sentinel::getUser();
-            $orders = array();
-            $orders = Order::whereIn('orders.id', $array)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.name as name,orders.email as email,orders.phone as phone,orders.status as status,orders.payment_status as payment_status,date,order_items.vendor_id as vendor_id"))
-                ->whereRaw("services.add_by={$users->id}")
-                ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->groupBy("orders.id")
-                ->get();
-            foreach ($orders as $key => $value) {
-                $orders[$key]->get_items = $this->get_order_item($value->id);
-            }
-
-            $data = $orders;
+        $data_lsit = array();
+        $data_lsit = Order::orderBy('id', 'DESC')->whereIn('id', $array)->get();
+        foreach ($data_lsit as $key => $value) {
+            $data_lsit[$key]->get_items = $this->get_order_item($value->id);
         }
+        $data = $data_lsit;
 
-        $columns = array('Id', 'Order Date', 'Order Id', 'Customer Name', 'Email', 'Phone', 'Total Amount', 'Status', 'Payment Status', 'Vendor');
+
+        $columns = array('Id', 'Order Date', 'Order Id', 'Customer Name', 'Email', 'Phone', 'Total Amount', 'Status', 'Payment Status');
 
         $callback = function () use ($data, $columns) {
             $file = fopen('php://output', 'w');
@@ -239,10 +222,8 @@ class OrderController extends Controller
                 $row['grand_total']  = $task->grand_total;
                 $row['status']  = $task->status;
                 $row['payment']  = $task->payment_status;
-                $row['vendor']  = $task->vendor_id;
 
-
-                fputcsv($file, array($row['id'], $row['date'], $row['order_id'], $row['name'], $row['email'], $row['phone'], $row['grand_total'], $row['status'], $row['payment'], $row['vendor']));
+                fputcsv($file, array($row['id'], $row['date'], $row['order_id'], $row['name'], $row['email'], $row['phone'], $row['grand_total'], $row['status'], $row['payment']));
             }
 
             fclose($file);
@@ -339,7 +320,6 @@ class OrderController extends Controller
         }
 
         $data['list'] = $orders;
-        $data['role'] = $role;
         $data['deliveryboy'] = User::getUserByRole(User::DELIVERY_BOY);
         $data['customers'] = User::getUserByRole(User::CUSTOMER);
         $data['area'] = DB::table('areas')->get();
@@ -396,120 +376,56 @@ class OrderController extends Controller
 
     public function filter_orders(Request $request)
     {
+        $data_lsit = array();
 
-        $slug = Sentinel::getUser()->roles()->first()->slug;
+        if ($request->filters == 'Filter By Status') {
+            $data_lsit = Order::orderBy('id', 'DESC')->where('status', $request->status)->get();
+        } else if ($request->filters == 'Filter By Area') {
+            $data_lsit = Order::orderBy('id', 'DESC')->where('area', $request->area)->get();
+        } else if ($request->filters == 'Filter By Datetime') {
+            echo $request->firstdate;
+            echo "<br>";
+            echo $request->firsttime;
+            echo "<br>";
+            echo $request->seconddate;
+            echo "<br>";
+            echo $request->secondtime;
+            echo "<br>";
 
-        if ($slug == 'super_admin') {
-            $data_lsit = array();
-
-            if ($request->filters == 'Filter By Status') {
-                $data_lsit = Order::orderBy('id', 'DESC')->where('status', $request->status)->get();
-            } else if ($request->filters == 'Filter By Area') {
-                $data_lsit = Order::orderBy('id', 'DESC')->where('area', $request->area)->get();
-            } else if ($request->filters == 'Filter By Datetime') {
-                echo $request->firstdate;
-                echo "<br>";
-                echo $request->firsttime;
-                echo "<br>";
-                echo $request->seconddate;
-                echo "<br>";
-                echo $request->secondtime;
-                echo "<br>";
-
-                /* $datetime=explode("-",$request->datetime);
+            /* $datetime=explode("-",$request->datetime);
                $first=$datetime[0];
                $firstdatetime=explode(" ",$first);
                print_r($request->datetime);*/
-                die;
-                $data_lsit = Order::where('area', $request->area)->orderBy('id', 'DESC')->get();
-            } else if ($request->filters == 'Filter By Date') {
+            die;
+            $data_lsit = Order::where('area', $request->area)->orderBy('id', 'DESC')->get();
+        } else if ($request->filters == 'Filter By Date') {
 
-                $startDate  = $request->date1;
-                $endDate  = $request->date2;
-                $data_lsit = Order::whereBetween('orders.created_at', [$startDate, $endDate])->orderBy('id', 'DESC')->get();
-            } else if ($request->filters == 'Filter By Order') {
+            $startDate  = $request->date1;
+            $endDate  = $request->date2;
+            $data_lsit = Order::whereBetween('orders.created_at', [$startDate, $endDate])->orderBy('id', 'DESC')->get();
+        } else if ($request->filters == 'Filter By Order') {
 
-                $from_order = $request->from_order;
-                $to_order = $request->to_order;
-                $data_lsit = Order::orderBy('id', 'DESC')->whereBetween(DB::raw('order_id'), [$from_order, $to_order])->get();
-            } else if ($request->filters == 'Filter By Customer') {
-                $customers = $request->customers;
-                $data_lsit = Order::orderBy('id', 'DESC')->where('user_id', $customers)->get();
-            } else if ($request->filters == '') {
-                $data_lsit = Order::orderBy('id', 'DESC')->get();
-            }
-
-            foreach ($data_lsit as $key => $value) {
-                $data_lsit[$key]->get_items = $this->get_order_item($value->id);
-            }
-            $data['list'] = $data_lsit;
-        } else {
-
-            $users = Sentinel::getUser();
-            $orders = array();
-
-            $search_vendor = DB::table('orders');
-
-            if ($request->filters == 'Filter By Status') {
-
-                $search_vendor = $search_vendor->where('orders.status', $request->status)->orderBy('orders.id', 'DESC');
-            } else if ($request->filters == 'Filter By Area') {
-                $search_vendor = $search_vendor->where('area', $request->area)->orderBy('id', 'DESC');
-            } else if ($request->filters == 'Filter By Datetime') {
-
-                echo $request->firstdate;
-                echo "<br>";
-                echo $request->firsttime;
-                echo "<br>";
-                echo $request->seconddate;
-                echo "<br>";
-                echo $request->secondtime;
-                echo "<br>";
-
-                $search_vendor = $search_vendor->where('area', $request->area)->orderBy('id', 'DESC');
-            } else if ($request->filters == 'Filter By Date') {
-
-                $startDate  = $request->date1;
-                $endDate  = $request->date2;
-                $search_vendor = $search_vendor->whereBetween('orders.created_at', [$startDate, $endDate])->orderBy('id', 'DESC');
-            } else if ($request->filters == 'Filter By Order') {
-                $from_order =   $request->from_order;
-                $to_order   =   $request->to_order;
-                $search_vendor = $search_vendor->whereBetween(DB::raw('order_id'), [$from_order, $to_order])->orderBy('id', 'DESC');
-            } else if ($request->filters == 'Filter By Customer') {
-
-                $customers = $request->customers;
-                $search_vendor = $search_vendor->where('user_id', $customers)->orderBy('id', 'DESC');
-            } else if ($request->filters == '') {
-                $search_vendor = $search_vendor->orderBy('id', 'DESC');
-            }
-
-            $orders = $search_vendor->select(DB::raw("orders.*"))
-                ->where("services.add_by", $users->id)
-                ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->groupBy("orders.id")
-                ->get();
-
-            //dd($orders);
-
-            foreach ($orders as $key => $value) {
-                $orders[$key]->get_items = $this->get_order_item($value->id);
-            }
-            $data['list'] = $orders;
+            $from_order = $request->from_order;
+            $to_order = $request->to_order;
+            $data_lsit = Order::orderBy('id', 'DESC')->whereBetween(DB::raw('order_id'), [$from_order, $to_order])->get();
+        } else if ($request->filters == 'Filter By Customer') {
+            $customers = $request->customers;
+            $data_lsit = Order::orderBy('id', 'DESC')->where('user_id', $customers)->get();
+        } else if ($request->filters == '') {
+            $data_lsit = Order::orderBy('id', 'DESC')->get();
         }
 
-        $data['slug']               =   $slug;
-        $role                       =   Sentinel::findRoleBySlug('deliveryboy');
-        $users                      =   $role->users()->get();
-        $role_customers             =   Sentinel::findRoleBySlug('customer');
-        $customers                  =   $role_customers->users()->get();
-        $data['deliveryboy']        =   $users;
-        $data['customers']          =   $customers;
+        foreach ($data_lsit as $key => $value) {
+            $data_lsit[$key]->get_items = $this->get_order_item($value->id);
+        }
+        $data['list'] = $data_lsit;
+
+        $data['customers'] = User::getUserByRole(User::CUSTOMER);
+        $data['deliveryboy'] = User::getUserByRole(User::DELIVERY_BOY);
         $data['area']               =   DB::table('areas')->get();
         $data['page_title']         =   'All Orders';
 
-        return view('admin/orders/index1', $data);
+        return view('admin.orders.index1', $data);
     }
 
 
@@ -710,38 +626,23 @@ class OrderController extends Controller
     }
     public function print_invoice_list($order)
     {
-        $slug = Sentinel::getUser()->roles()->first()->slug;
+        $data['order'] = Order::where('id', $order)->first();
+        $data['items'] = OrderItem::where('order_items.order_id', $order)
+            ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
+            ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
+            ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
+            ->get();
+        $offer_list = array();
 
-        if ($slug == 'super_admin') {
-            $data['order'] = Order::where('id', $order)->first();
-            $data['items'] = OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
-                ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->get();
-            $offer_list = array();
+        $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
+            ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name,services.unit,services.unit_value"))
+            ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
+            ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
+            ->get();
+        $data['offer_list'] = $offer_list;
 
-            $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
-                ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name,services.unit,services.unit_value"))
-                ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-                ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
-                ->get();
-            $data['offer_list'] = $offer_list;
-        } else {
-            $users = Sentinel::getUser();
-            $data['order'] = Order::where('orders.id', $order)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("services.add_by={$users->id}")
-                ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->groupBy("orders.id")->first();
-            // dd( $data['order']);
-            $data['items'] = OrderItems::where('order_id', $order)
-                ->whereRaw("services.add_by={$users->id}")
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->get();
-        }
         $data['page_title'] = 'Print Order';
-        return view('admin/orders/print_list', $data);
+        return view('admin.orders.print_list', $data);
     }
     public function print_invoice($order)
     {
@@ -1179,37 +1080,22 @@ class OrderController extends Controller
             ->get();
         return $offer_list;
     }
+
     function print_invoice_multiple($id)
     {
         $array = explode("-", $id);
-        $slug = Sentinel::getUser()->roles()->first()->slug;
+        $order_data = array();
+        $order_data = Order::whereIn('id', $array)->get();
 
-        if ($slug == 'super_admin') {
-            $order_data = array();
-            $order_data = Order::whereIn('id', $array)->get();
-
-            foreach ($order_data as $key => $value) {
-                $order_data[$key]->order_item = $this->get_order_item($value->id);
-                $order_data[$key]->offer_item = $this->get_offer_list($value->id);
-            }
-
-            $data['order_data'] = $order_data;
-        } else {
-            $users = Sentinel::getUser();
-            $order_data = Order::whereIn('orders.id', $array)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("services.add_by={$users->id}")
-                ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->groupBy("orders.id")->get();
-            foreach ($order_data as $key => $value) {
-                $order_data[$key]->order_item = $this->get_order_item($value->id);
-                $order_data[$key]->offer_item = $this->get_offer_list($value->id);
-            }
-
-            $data['order_data'] = $order_data;
+        foreach ($order_data as $key => $value) {
+            $order_data[$key]->order_item = $this->get_order_item($value->id);
+            $order_data[$key]->offer_item = $this->get_offer_list($value->id);
         }
+
+        $data['order_data'] = $order_data;
+
         $data['page_title'] = 'Print Orders';
-        return view('admin/orders/multiple_print', $data);
+        return view('admin.orders.multiple_print', $data);
     }
     function print_invoice_items($id)
     {
@@ -1217,11 +1103,11 @@ class OrderController extends Controller
         $data['order_item'] = $this->get_order_item_array($array);
         $data['offer_item'] = $this->get_offer_list_array($array);
         $data['page_title'] = 'Print Orders';
-        return view('admin/orders/totalitem', $data);
+        return view('admin.orders.totalitem', $data);
     }
     function get_order_item_array($id)
     {
-        $data = OrderItems::where('order_items.order_id', $id)
+        $data = OrderItem::where('order_items.order_id', $id)
             ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
             ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
             ->leftJoin('services', 'order_items.product_id', '=', 'services.id')

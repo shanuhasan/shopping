@@ -16,6 +16,8 @@ Route::get('/shop/{main_category?}/{slug}', [ShopController::class, 'product_lis
 Route::get('/shop/{main_category?}/{sub_category?}/{slug}', [ShopController::class, 'product_list'])->name('shop3');
 Route::get('/product_details/{slug}', [ShopController::class, 'productDetails'])->name('product_details');
 
+Route::get('/search', [ShopController::class, 'search_product'])->name('search_product');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
