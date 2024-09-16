@@ -95,9 +95,10 @@
                                         </thead>
                                         <tbody>
                                             <?php
-                        $total_weight_offer=array();
-                        $total_pcs_offer=array();
-                        $i=1; foreach($orderdata->offer_item as $values){ ?>
+                                            $total_weight_offer=array();
+                                            $total_pcs_offer=array();
+                                            $i=1; 
+                                            foreach($orderdata->offer_item as $values){ ?>
                                             <tr>
                                                 <td><?= $i ?></td>
                                                 <td><?= $values->service_name ?>
@@ -219,9 +220,9 @@
                                                 <th>INR {{ number_format((float) $subtotal, 2, '.', '') }}</th>
                                             </tr>
                                             <!--tr>
-                                                    <th>Tax (9.3%)</th>
-                                                    <td>0</td>
-                                                  </tr-->
+                                                            <th>Tax (9.3%)</th>
+                                                            <td>0</td>
+                                                          </tr-->
                                             <tr>
                                                 <th>Shipping:</th>
                                                 <th>INR {{ number_format((float) $orderdata->shipping, 2, '.', '') }}</th>

@@ -76,4 +76,29 @@ class User extends Authenticatable
     {
         return self::where('id', $id)->first();
     }
+
+    public function address()
+    {
+        return $this->hasMany(UserAddress::class);
+    }
+
+    public static function byEmail($email)
+    {
+        return static::whereEmail($email)->first();
+    }
+
+    public function countrydata()
+    {
+        return $this->belongsTo(Country::class, 'country');
+    }
+
+    public function statedata()
+    {
+        return $this->belongsTo(State::class, 'state');
+    }
+
+    public function citydata()
+    {
+        return $this->belongsTo(City::class, 'city');
+    }
 }

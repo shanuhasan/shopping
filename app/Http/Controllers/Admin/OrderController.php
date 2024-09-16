@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App;
 use PDF;
-use Session;
 use Sentinel;
 use Validator;
 use App\Models\City;
@@ -18,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\shiproket\ShiproketController;
 
 class OrderController extends Controller
@@ -482,7 +482,7 @@ class OrderController extends Controller
         $data['states'] = $state;
         $data['countries'] = $countries;
         $data['page_title'] = 'Add Order';
-        return view('admin/orders/add', $data);
+        return view('admin.orders.add', $data);
     }
 
     /**
@@ -496,12 +496,12 @@ class OrderController extends Controller
         if (!empty(Session::get('cart'))) {
             $address = array();
             $carts = Session::get('cart');
-            $user = User::where("id", $request->customer)->select(DB::raw("id,concat(first_name,' ',last_name) as user_name,email,phone,line_1,line_2,country,state,city,zip_code"))->first();
-            if (!empty($user->line_1)) {
-                $address[] = $user->line_1 . "<br>";
+            $user = User::where("id", $request->customer)->select(DB::raw("id,name as user_name,email,phone,address_1,address_2,country,state,city,pincode"))->first();
+            if (!empty($user->address_1)) {
+                $address[] = $user->address_1 . "<br>";
             }
-            if (!empty($user->line_2)) {
-                $address[] = $user->line_2 . "<br>";
+            if (!empty($user->address_2)) {
+                $address[] = $user->address_2 . "<br>";
             }
             if (!empty($user->city)) {
                 $address[] = $user->citydata->name;
@@ -512,27 +512,26 @@ class OrderController extends Controller
             if (!empty($user->country)) {
                 $address[] = $user->countrydata->name;
             }
-            if (!empty($user->zip_code)) {
-                $address[] = $user->zip_code . "<br>";
+            if (!empty($user->pincode)) {
+                $address[] = $user->pincode . "<br>";
             }
             //dd($address);
             $grand_total = 0;
             $items = array();
-            $data = array(
-                'date' => date("Y-m-d H:i:s"),
-                'user_id' => $request->customer,
-                'user_name' => $user->user_name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'tax' => 0,
-                'address' => implode(",", $address),
-                'payment_status' => $request->payment_status,
-                'status' => $request->status,
-                'note' => $request->note,
-            );
-            //print_r(); die;
-            foreach ($carts as $cart) {
 
+            $model = new Order();
+            $model->date = date("Y-m-d H:i:s");
+            $model->user_id = $request->customer;
+            $model->user_name = $user->user_name;
+            $model->email = $user->email;
+            $model->phone = $user->phone;
+            $model->tax = 0;
+            $model->address = implode(",", $address);
+            $model->payment_status = $request->payment_status;
+            $model->status = $request->status;
+            $model->note = $request->note;
+
+            foreach ($carts as $cart) {
                 $price = $cart['service_price'] ? $cart['service_price'] : 0;
                 $price = $cart['sale_price'] ? $cart['sale_price'] : $price;
                 $total = $price * $cart['quantity'];
@@ -548,23 +547,30 @@ class OrderController extends Controller
             }
             if ($request->order_discount && $request->order_discount > 0) {
                 $grand_total -= $request->order_discount;
-                $data['order_discount'] = $request->order_discount;
+                $model->order_discount = $request->order_discount;
             }
 
             if ($request->shipping && $request->shipping > 0) {
                 $grand_total += $request->shipping;
-                $data['shipping'] = $request->shipping;
+                $model->shipping = $request->shipping;
             }
-            $data['grand_total'] = $grand_total;
+            $model->grand_total = $grand_total;
             if ($request->payment_status == "success") {
-                $data['paid'] = $grand_total;
+                $model->paid = $grand_total;
             }
 
-            $order = Order::create($data);
-            if (!empty($order)) {
+            if ($model->save()) {
                 foreach ($items as $item) {
-                    $item['order_id'] = $order->id;
-                    OrderItems::create($item);
+                    $order = new OrderItem();
+                    $order->order_id = $model->id;
+                    $order->product_id = $item['product_id'];
+                    $order->item_id = $item['item_id'];
+                    $order->price = $item['price'];
+                    $order->quantity = $item['quantity'];
+                    $order->tax = $item['tax'];
+                    $order->total = $item['total'];
+                    $order->status = $item['status'];
+                    $order->save();
                 }
                 Order::where("id", $order->id)->update(['reference_no' => "ORD000{$order->id}", 'order_id' => "ORD000{$order->id}"]);
             }

@@ -2,34 +2,31 @@
 
 namespace App\Http\Controllers\admin;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Helper\Helper;
-use DB;
-use Validator;
+use Crypt;
 use Sentinel;
-use Session;
 use Activation;
-use App\User;
+use Carbon\Carbon;
+use App\Models\City;
+use App\Models\User;
+use App\Models\State;
+use App\Helper\Helper;
 use App\Models\Country;
 use App\Models\Delivery;
-use App\Models\State;
-use App\Models\City;
-use Carbon\Carbon;
-use Crypt;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 
 class UserController extends Controller
 {
-  function index()
+  public function index()
   {
-
-    $role = Sentinel::findRoleBySlug('customer');
-
-    $users = $role->users()->get();
-    $data['customers'] = $users;
+    $data['customers'] = User::getUserByRole(User::CUSTOMER);
     $data['page_title'] = 'Customer List';
-    return view('admin/customers/index', $data);
+    return view('admin.customers.index', $data);
   }
 
   function sent_sms($number, $message)
@@ -108,13 +105,13 @@ class UserController extends Controller
         //   $download_url = '{{url("uploads/apk_file")}}/'.$apk->apk_file; 
 
         //   $link ='<a href="{{url("uploads/apk_file")}}/'.$apk->apk_file.'">Download apk</a>';
-        //   $message='Hi '.$chkUser->first_name.' Congrats! Now you are our delivery partner, you can download our delivery partner app.<br>
+        //   $message='Hi '.$chkUser->name.' Congrats! Now you are our delivery partner, you can download our delivery partner app.<br>
         //   App link: '.$link.' <br>
         //   Email id: '.$chkUser->email.'<br>
         //   Password: '.$passwordSend->password.' <br>
         //   <b>Regard: anbshopping</b>
         //   ';
-        //   $message1='Hi '.$chkUser->first_name.' Congrats! Now you are our delivery partner, you can download our delivery partner app.
+        //   $message1='Hi '.$chkUser->name.' Congrats! Now you are our delivery partner, you can download our delivery partner app.
         //   App link: '.$download_url.'
         //   Email id: '.$chkUser->email.'
         //   Password: '.$passwordSend->password.' 
@@ -211,22 +208,74 @@ class UserController extends Controller
 
   function get_city_by_state(Request $request)
   {
-
     $city = City::where('state_id', $request->id)->get();
-
     return $city;
+  }
+
+  public function store(Request $request)
+  {
+    $validator = Validator::make($request->all(), [
+      'email' => 'required|unique:users|email',
+      'password' => 'required',
+      'name' => 'required'
+    ]);
+
+    if ($validator->fails()) {
+      return redirect()->with('error', 'Some Field are missing...')->back();
+    }
+
+    $model = new User();
+    $model->guid = GUIDv4();
+    $model->name = $request->name;
+    $model->email = $request->email;
+    $model->password = Hash::make($request->password);
+    $model->role_id = $request->user_type;
+    $model->phone = $request->phone;
+
+    $image_name = '';
+    if ($request->hasFile('image')) {
+      $image = $request->file('image');
+      $image_name = time() . '.' . $image->getClientOriginalExtension();
+      $destinationPath = $this->base_url() . '/uploads/users/';
+      $image->move($destinationPath, $image_name);
+    }
+    $model->image = $image_name;
+    $model->address_1 = $request->address_1;
+    $model->address_2 = $request->address_2;
+    $model->pincode = $request->pincode;
+    $model->country = $request->country;
+    $model->state = $request->state;
+    $model->city = $request->city;
+
+    if ($model->save()) {
+      DB::table('password_save')->insert([
+        "email" => $request->email,
+        "password" => $request->password,
+        "user_id" => $model->id
+      ]);
+    }
+
+    if (!empty($from)) {
+      Session::flash('user_id', $model->id);
+      if ($from == 'front') {
+        Session::flash('success', 'Account Created Successfully...');
+      }
+      return redirect()->back();
+    } else {
+      Session::flash('success', 'Customer Created Successfully...');
+      return redirect()->route('admin.customer.index');
+    }
   }
 
 
 
 
-  public function store(Request $request)
+  public function store1(Request $request)
   {
-
     $validator = Validator::make($request->all(), [
       'email' => 'required|unique:users|email',
       'password' => 'required',
-      'first_name' => 'required'
+      'name' => 'required'
     ]);
 
     if ($validator->fails()):
@@ -253,8 +302,7 @@ class UserController extends Controller
 
     // $user = Sentinel::registerAndActivate($request->all()); 
     $user = Sentinel::registerAndActivate([
-      "first_name" => $request->first_name,
-      "last_name" => $request->last_name,
+      "name" => $request->name,
       "email" => $request->email,
       "password" => $request->password
     ]);
@@ -262,8 +310,7 @@ class UserController extends Controller
     //$commission = isset($request->commission) ? $request->commission : 0;
 
     $data = array(
-      "first_name" => $request->first_name,
-      "last_name" => $request->last_name,
+      "name" => $request->name,
       "email" => $request->email,
       "phone" => $request->phone,
       "auth_key" => $auth_key,
@@ -417,20 +464,20 @@ class UserController extends Controller
       $phone = $request->phone;
       $message = '';
       if ($request->user_type == '6') {
-        $message = ' Bulk Order Request Status: ' . $request->first_name . '  Congrats! You are now a premium member!, Now you can purchase bulk order. Regards:ANB';
+        $message = ' Bulk Order Request Status: ' . $request->name . '  Congrats! You are now a premium member!, Now you can purchase bulk order. Regards:ANB';
         $this->sent_sms($phone, $message);
       }
 
       if ($request->user_type == '77') {
 
         $link = '<a href="https://anbshopping.com/app-debug.apk">Download apk</a>';
-        $message = 'Hi ' . $request->first_name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.<br>
+        $message = 'Hi ' . $request->name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.<br>
           App link: ' . $link . ' <br>
           Email id: ' . $request->email . '<br>
           Password: ' . $request->password . ' <br>
           <b>Regard: anbshopping</b>
           ';
-        $message1 = 'Hi ' . $request->first_name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.
+        $message1 = 'Hi ' . $request->name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.
           App link: https://anbshopping.com/app-debug.apk
           Email id: ' . $request->email . '
           Password: ' . $request->password . ' 
@@ -463,7 +510,7 @@ class UserController extends Controller
     $validator = Validator::make($request->all(), [
       'email' => 'required|unique:users|email',
       'password' => 'required',
-      'first_name' => 'required'
+      'name' => 'required'
     ]);
 
     if ($validator->fails()):
@@ -490,8 +537,7 @@ class UserController extends Controller
 
     // $user = Sentinel::registerAndActivate($request->all()); 
     $user = Sentinel::registerAndActivate([
-      "first_name" => $request->first_name,
-      "last_name" => $request->last_name,
+      "name" => $request->name,
       "email" => $request->email,
       "password" => $request->password
     ]);
@@ -499,8 +545,7 @@ class UserController extends Controller
     //$commission = isset($request->commission) ? $request->commission : 0;
 
     $data = array(
-      "first_name" => $request->first_name,
-      "last_name" => $request->last_name,
+      "name" => $request->name,
       "email" => $request->email,
       "phone" => $request->phone,
       "auth_key" => $auth_key,
@@ -654,20 +699,20 @@ class UserController extends Controller
       $phone = $request->phone;
       $message = '';
       if ($request->user_type == '6') {
-        $message = ' Bulk Order Request Status: ' . $request->first_name . '  Congrats! You are now a premium member!, Now you can purchase bulk order. Regards:ANB';
+        $message = ' Bulk Order Request Status: ' . $request->name . '  Congrats! You are now a premium member!, Now you can purchase bulk order. Regards:ANB';
         $this->sent_sms($phone, $message);
       }
 
       if ($request->user_type == '77') {
 
         $link = '<a href="https://anbshopping.com/app-debug.apk">Download apk</a>';
-        $message = 'Hi ' . $request->first_name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.<br>
+        $message = 'Hi ' . $request->name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.<br>
           App link: ' . $link . ' <br>
           Email id: ' . $request->email . '<br>
           Password: ' . $request->password . ' <br>
           <b>Regard: anbshopping</b>
           ';
-        $message1 = 'Hi ' . $request->first_name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.
+        $message1 = 'Hi ' . $request->name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.
           App link: https://anbshopping.com/app-debug.apk
           Email id: ' . $request->email . '
           Password: ' . $request->password . ' 
@@ -716,8 +761,7 @@ class UserController extends Controller
     //$commission = isset($request->commission) ? $request->commission : 0;
 
     $data = array(
-      "first_name" => $request->first_name,
-      "last_name" => $request->last_name,
+      "name" => $request->name,
       //"commission"=>$commission,
       //"email" => $request->email,
       "profile_image" => $image_name,
@@ -896,8 +940,7 @@ class UserController extends Controller
     if ($request->user_type == '6') {
       $ms = 'Premium Member';
       $data = array(
-        "first_name" => $request->first_name,
-        "last_name" => $request->last_name,
+        "name" => $request->name,
         "email" => $request->email,
         "phone" => $request->phone,
         "line_1" => $request->line_1,
@@ -913,8 +956,7 @@ class UserController extends Controller
     } else {
 
       $data = array(
-        "first_name" => $request->first_name,
-        "last_name" => $request->last_name,
+        "name" => $request->name,
         "email" => $request->email,
         "phone" => $request->phone,
         "line_1" => $request->line_1,
@@ -958,18 +1000,18 @@ class UserController extends Controller
       $phone = $request->phone;
       $message = '';
       if ($request->user_type == '6') {
-        $message = ' Bulk Order Request Status: ' . $request->first_name . '  Congrats! You are now a premium member!, Now you can purchase bulk order. Regards:anbshopping';
+        $message = ' Bulk Order Request Status: ' . $request->name . '  Congrats! You are now a premium member!, Now you can purchase bulk order. Regards:anbshopping';
         $this->sent_sms($phone, $message);
       }
       if ($request->user_type == '7') {
         $link = '<a href="https://anbshopping.com/app-debug.apk">Download apk</a>';
-        $message = 'Hi ' . $request->first_name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.<br>
+        $message = 'Hi ' . $request->name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.<br>
       App link: ' . $link . ' <br>
       Email id: ' . $request->email . '<br>
       Password: ' . $request->password . ' <br>
       <b>Regard: anbshopping</b>
       ';
-        $message1 = 'Hi ' . $request->first_name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.
+        $message1 = 'Hi ' . $request->name . ' Congrats! Now you are our delivery partner, you can download our delivery partner app.
       App link: https://anbshopping.com/app-debug.apk
       Email id: ' . $request->email . '
       Password: ' . $request->password . ' 
@@ -992,14 +1034,14 @@ class UserController extends Controller
       $term = $request->term;
       $page = $request->page - 1;
 
-      $rows['results'] = User::where("first_name", "LIKE", "%{$term}%")->orWhere("last_name", "LIKE", "%{$term}%")->orWhere("email", "LIKE", "%{$term}%")->orWhere("phone", "LIKE", "%{$term}%")->offset($page)->limit($request->limit)->select(DB::raw("id,concat(first_name,' ',last_name) as text"))->get();
+      $rows['results'] = User::where("name", "LIKE", "%{$term}%")->orWhere("email", "LIKE", "%{$term}%")->orWhere("phone", "LIKE", "%{$term}%")->offset($page)->limit($request->limit)->select(DB::raw("id,concat(name) as text"))->get();
 
-      $count = count(User::where("first_name", "LIKE", "%{$term}%")->orWhere("last_name", "LIKE", "%{$term}%")->orWhere("email", "LIKE", "%{$term}%")->orWhere("phone", "LIKE", "%{$term}%")->get());
+      $count = count(User::where("name", "LIKE", "%{$term}%")->orWhere("email", "LIKE", "%{$term}%")->orWhere("phone", "LIKE", "%{$term}%")->get());
       $rows['total_count'] = $count;
       $rows['incomplete_results'] = $count > 0 ? true : false;
     } else {
       // dd( $request);
-      $rows = User::where("id", $request->customer_id)->select(DB::raw("id,concat(first_name,' ',last_name) as text"))->get();
+      $rows = User::where("id", $request->customer_id)->select(DB::raw("id,concat(name) as text"))->get();
     }
 
     return response()->json($rows);
@@ -1192,7 +1234,7 @@ class UserController extends Controller
 
     $order_id = $request->order_id;
     $get_data = DB::table('deliveries')
-      ->select('deliveries.*', 'users.first_name', 'users.last_name', 'users.id as user_id')
+      ->select('deliveries.*', 'users.name', 'users.id as user_id')
       ->where('deliveries.order_id', $order_id)
       ->leftJoin('users', 'deliveries.user_id', '=', 'users.id')
       ->get();
@@ -1246,7 +1288,7 @@ class UserController extends Controller
            </select>
            ';
       echo "<tr>
-           <td>" . $value->first_name . " " . $value->last_name . "</td>
+           <td>" . $value->name . "</td>
            <td>" . $value->updated_at . "</td>
            <td>" . $option . "</td>
            </tr>

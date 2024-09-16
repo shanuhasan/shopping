@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CommonController;
+use App\Http\Controllers\admin\UserController;
 use App\Http\Controllers\admin\OfferController;
 use App\Http\Controllers\admin\OrderController;
 use App\Http\Controllers\admin\BannerController;
@@ -73,8 +74,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'],
     Route::get('/product/get_subcategory', [ProductController::class, 'get_subcategory'])->name('product.get_subcategory');
     Route::get('/product/get_service_bysubcategory', [ProductController::class, 'get_service_bysubcategory'])->name('product.get_service_bysubcategory');
     Route::get('/product/get_child_category_by_ajax', [ProductController::class, 'get_child_category_by_ajax'])->name('product.get_child_category_by_ajax');
-    Route::get('/product/findProducts', [ProductController::class, 'findProducts'])->name('product.findProducts');
-    Route::get('/product/getProductDeatails', [ProductController::class, 'getProductDeatails'])->name('product.getProductDeatails');
+    Route::get('/products/findProducts', [ProductController::class, 'findProducts'])->name('product.findProducts');
+    Route::get('/products/getProductDeatails', [ProductController::class, 'getProductDeatails'])->name('product.getProductDeatails');
     Route::get('/attribute', [ProductController::class, 'attribute'])->name('attribute');
     Route::get('/attribute_varition_configer/{id}/{varition?}', [ProductController::class, 'attribute_varition_configer'])->name('attribute_varition_configer');
     Route::post('/add_varition', [ProductController::class, 'add_varition'])->name('add_varition');
@@ -104,16 +105,42 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'],
     Route::get('/order', [OrderController::class, 'index'])->name('order.index');
     Route::get('/orders', [OrderController::class, 'orders'])->name('order.orders');
     Route::post('/filter_orders', [OrderController::class, 'filter_orders'])->name('order.filter_orders');
-
     Route::get('/print_invoice_pdf/{id}', [OrderController::class, 'print_invoice_pdf'])->name('order.print_invoice_pdf');
     Route::get('/print_invoice_multiple/{id}', [OrderController::class, 'print_invoice_multiple'])->name('order.print_invoice_multiple');
     Route::get('/print_invoice_items/{id}', [OrderController::class, 'print_invoice_items'])->name('order.print_invoice_items');
     Route::get('/print_invoice_list/{id}', [OrderController::class, 'print_invoice_list'])->name('order.print_invoice_list');
     Route::get('/export_order/{id}', [OrderController::class, 'export_order'])->name('order.export_order');
 
+    Route::get('/order/create', [OrderController::class, 'create'])->name('order.create');
+    Route::post('/order/store', [OrderController::class, 'store'])->name('order.store');
+    Route::get('/order/edit/{id}', [OrderController::class, 'edit'])->name('order.edit');
+    Route::post('/order/update', [OrderController::class, 'update'])->name('order.update');
+    Route::get('/order/view/{id}', [OrderController::class, 'view'])->name('order.view');
+    Route::get('/order/delete/{id}', [OrderController::class, 'destroy'])->name('order.destroy');
+    Route::get('/order/addTocart', [OrderController::class, 'addTocart'])->name('order.addTocart');
+    Route::get('/order/removeCart', [OrderController::class, 'removeCart'])->name('order.removeCart');
 
-    Route::post('/upload-image', [UploadImageController::class, 'create'])->name('media.create');
+
+    //Customers
+    Route::get('/customers', [UserController::class, 'index'])->name('customer.index');
+    Route::get('/get_order_deliveryboy', [UserController::class, 'get_order_deliveryboy'])->name('customer.get_order_deliveryboy');
+    Route::get('/updatedeliveryStatus', [UserController::class, 'updatedeliveryStatus'])->name('customer.updatedeliveryStatus');
+    Route::get('/customers/deliveryboy', [UserController::class, 'deliveryboy'])->name('customer.deliveryboy');
+    Route::get('/customers/sellers', [UserController::class, 'sellers'])->name('customer.sellers');
+    Route::get('/assign_delivery_boy', [UserController::class, 'assign_delivery_boy'])->name('customer.assign_delivery_boy');
+    Route::get('/customers/status/{id}', [UserController::class, 'updateStatus'])->name('customer.updateStatus');
+    Route::get('/customers/create', [UserController::class, 'create'])->name('customer.create');
+    Route::post('/customers/store', [UserController::class, 'store'])->name('customer.store');
+    Route::get('/customers/edit/{id}', [UserController::class, 'edit'])->name('customer.edit');
+
+    Route::get('/get_state_by_country', [UserController::class, 'get_state_by_country'])->name('get_state_by_country');
+    Route::get('/get_city_by_state', [UserController::class, 'get_city_by_state'])->name('get_city_by_state');
+    Route::get('/customers/getCustomers', [UserController::class, 'getCustomers'])->name('customer.getCustomers');
 
     //common
+    Route::post('/upload-image', [UploadImageController::class, 'create'])->name('media.create');
     Route::get('/get-subcategory', [CommonController::class, 'getSubCategory'])->name('get-subcategory');
+    Route::get('/get-states', [CommonController::class, 'getStates'])->name('get-states');
+    Route::get('/get-cities', [CommonController::class, 'getCities'])->name('get-cities');
+    Route::post('/registerExistingEmail', [CommonController::class, 'isExistingEmail'])->name('registerExistingEmail');
 });

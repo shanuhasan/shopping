@@ -211,10 +211,11 @@
     <script>
         $(document).ready(function() {
             $('#country').change(function() {
+                console.log('fjksjkf');
                 var markup = '<option> select state </option>';
                 var id = $(this).val();
                 $.ajax({
-                    url: "{{ url('/get_state_by_country') }}",
+                    url: "{{ route('admin.get_state_by_country') }}",
                     type: 'get',
                     data: {
                         id: id
@@ -242,7 +243,7 @@
 
                 $.ajax({
 
-                    url: '{{ url('/get_city_by_state') }}',
+                    url: "{{ route('admin.get_city_by_state') }}",
 
                     type: 'get',
 

@@ -156,7 +156,7 @@
                     </a>
                 </li>
 
-                <li class="nav-item has-treeview {!! Request::segments()[1] == 'customers' ? 'menu-open' : '' !!}">
+                <li class="nav-item has-treeview @yield('customer_open')">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-circle"></i>
                         <p>
@@ -167,11 +167,11 @@
                     <ul class="nav nav-treeview">
 
                         <li class="nav-item">
-                            <a href="{{ url('admin/customers') }}" class="nav-link {!! Route::getFacadeRoot()->current()->uri() == 'admin/customers' ? 'active' : '' !!}">
+                            <a href="{{ url('admin/customers') }}" class="nav-link @yield('customer_active')">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>All Users</p>
                             </a>
-                            <a href="{{ url('admin/customers/create') }}" class="nav-link {!! Route::getFacadeRoot()->current()->uri() == 'admin/customers/create' ? 'active' : '' !!}">
+                            <a href="{{ url('admin/customers/create') }}" class="nav-link @yield('customer_create_active')">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Add User</p>
                             </a>

@@ -213,11 +213,12 @@
     </style>
     <script>
         site_url = "{{ url('/') }}/";
-        asset = "{{ asset('/') }}/";
+        asset = "{{ asset('/') }}";
         //$('select, .select').select2({ minimumResultsForSearch: 7 });
     </script>
 
     @yield('script')
+    @stack('js')
 
     @if ($message = Session::get('error'))
         <script type="text/javascript">
@@ -434,7 +435,7 @@
             var country_id = $(this).val();
 
             $.ajax({
-                url: '{{ url('get-states') }}',
+                url: "{{ route('admin.get-states') }}",
                 type: 'get',
                 data: {
                     'country_id': country_id
@@ -464,7 +465,7 @@
             $("#cities > option").remove();
             var state_id = $(this).val();
             $.ajax({
-                url: '{{ url('get-cities') }}',
+                url: "{{ route('admin.get-cities') }}",
                 type: 'get',
                 data: {
                     'state_id': state_id
