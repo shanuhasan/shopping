@@ -605,9 +605,7 @@ class ProductController extends Controller
     echo "yes";
   }
 
-
   // attrute create 
-
   public function attribute()
   {
     $attributeData = DB::table('attributes')->get();
@@ -666,5 +664,68 @@ class ProductController extends Controller
     }
 
     return back();
+  }
+
+  public function complaint()
+  {
+    $complain = DB::table('complains')->get();
+    $data['page_title'] = 'Complain';
+    $data['complains'] = $complain;
+    return view('admin.complain.complain', $data);
+  }
+
+  public function review()
+  {
+
+    if (!Auth::check()) {
+      return redirect('/');
+    }
+
+    $productsReview = DB::table('services')
+      ->select(DB::raw(
+        'services.id AS id, 
+              services.service_name, 
+              services.add_by
+              '
+      ))
+      ->leftJoin('order_items', 'services.id', '=', 'order_items.product_id')
+      ->whereNotNull('order_items.review')
+      ->get();
+
+    $data['review'] = $productsReview;
+    $data['page_title'] = 'Review List';
+
+    //dd($data);
+    return view('admin.review', $data);
+  }
+
+  public function review_list_detail($id)
+  {
+
+    if (!Sentinel::check()) {
+      return redirect('/');
+    }
+
+    $productsReview = DB::table('order_items')->where('product_id', $id)->whereNotNull('order_items.review')->get();
+    foreach ($productsReview  as $review) {
+
+      $order = DB::table('orders')->where('id', $review->order_id)->first();
+      $userName = DB::table('users')->where('id', $order->user_id)->first();
+      $rev[] = [
+        "id" => $review->id,
+        "order_id" => $review->order_id,
+        "product_id" => $review->product_id,
+        "review" => $review->review,
+        "rating" => $review->rating,
+        "username" => $userName->first_name . ' ' . $userName->last_name,
+      ];
+    }
+
+    $data['review'] = $rev;
+    // $data['vendors']=$user;
+    $data['page_title'] = 'Review List';
+
+    //dd($data);
+    return view('admin/vendors/review_detail', $data);
   }
 }

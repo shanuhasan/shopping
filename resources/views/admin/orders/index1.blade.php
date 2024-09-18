@@ -141,7 +141,6 @@
                                     if(count($item->get_items)>0){
                                         $total[] = $item->grand_total;
                                     ?>
-
                                 <tr>
                                     <td>
                                         {{ $i }}

@@ -142,15 +142,16 @@
                         </li>
                     </ul>
                 </li>
+
                 <li class="nav-item">
-                    <a href="{{ url('vendor/complaint') }}" class="nav-link">
+                    <a href="{{ route('admin.complaint') }}" class="nav-link @yield('complaint')">
                         <i class="nav-icon fas fa-circle"></i>
                         Complaint
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ url('admin/review') }}" class="nav-link">
+                    <a href="{{ route('admin.review') }}" class="nav-link @yield('review')">
                         <i class="nav-icon fas fa-circle"></i>
                         Review
                     </a>

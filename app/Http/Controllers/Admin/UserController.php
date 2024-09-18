@@ -236,7 +236,7 @@ class UserController extends Controller
     if ($request->hasFile('image')) {
       $image = $request->file('image');
       $image_name = time() . '.' . $image->getClientOriginalExtension();
-      $destinationPath = $this->base_url() . '/uploads/users/';
+      $destinationPath = $this->base_url() . '/uploads/profile/';
       $image->move($destinationPath, $image_name);
     }
     $model->image = $image_name;

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App;
 use PDF;
 use Sentinel;
 use Validator;
@@ -15,6 +14,7 @@ use App\Models\OrderItem;
 use App\Models\OrderItems;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -591,44 +591,26 @@ class OrderController extends Controller
      */
     public function show($order)
     {
-        $slug = Sentinel::getUser()->roles()->first()->slug;
+        //echo "yes"; die;
+        $data['order'] = Order::where('id', $order)->first();
 
-        if ($slug == 'super_admin') {
-            //echo "yes"; die;
-            $data['order'] = Order::where('id', $order)->first();
+        $data['items'] = OrderItem::where('order_items.order_id', $order)
+            ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
+            ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
+            ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
+            ->get();
+        $offer_list = array();
 
-            $data['items'] = OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
-                ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->get();
-            $offer_list = array();
+        $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
+            ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name,services.unit,services.unit_value"))
+            ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
+            ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
+            //->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
+            ->get();
+        $data['offer_list'] = $offer_list;
 
-            $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
-                ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name,services.unit,services.unit_value"))
-                ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-                ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
-                //->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->get();
-            $data['offer_list'] = $offer_list;
-        } else {
-            $data['offer_list'] = array();
-            $users = Sentinel::getUser();
-            $data['order'] = Order::where('orders.id', $order)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("services.add_by={$users->id}")
-                ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->groupBy("orders.id")->first();
-            // dd( $data['order']);
-            $data['items'] = OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
-                ->whereRaw("services.add_by={$users->id}")
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->get();
-        }
         $data['page_title'] = 'View Order';
-        return view('admin/orders/view', $data);
+        return view('admin.orders.view', $data);
     }
     public function print_invoice_list($order)
     {
@@ -652,38 +634,23 @@ class OrderController extends Controller
     }
     public function print_invoice($order)
     {
-        $slug = Sentinel::getUser()->roles()->first()->slug;
+        $data['order'] = Order::where('id', $order)->first();
+        $data['items'] = OrderItem::where('order_items.order_id', $order)
+            ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
+            ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
+            ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
+            ->get();
+        $offer_list = array();
 
-        if ($slug == 'super_admin') {
-            $data['order'] = Order::where('id', $order)->first();
-            $data['items'] = OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
-                ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->get();
-            $offer_list = array();
+        $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
+            ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name"))
+            ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
+            ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
+            ->get();
+        $data['offer_list'] = $offer_list;
 
-            $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
-                ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name"))
-                ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-                ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
-                ->get();
-            $data['offer_list'] = $offer_list;
-        } else {
-            $users = Sentinel::getUser();
-            $data['order'] = Order::where('orders.id', $order)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("services.add_by={$users->id}")
-                ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->groupBy("orders.id")->first();
-            // dd( $data['order']);
-            $data['items'] = OrderItems::where('order_id', $order)
-                ->whereRaw("services.add_by={$users->id}")
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->get();
-        }
         $data['page_title'] = 'View Order';
-        return view('admin/orders/bill', $data);
+        return view('admin.orders.bill', $data);
     }
 
     /**
@@ -694,9 +661,6 @@ class OrderController extends Controller
      */
     public function edit($order)
     {
-
-        // dd($order);
-
         $data['status'] = array(
             "pending" => "Pending",
             "ordered" => "Ordered",
@@ -714,11 +678,16 @@ class OrderController extends Controller
         );
 
         $data['order'] = Order::where('id', $order)->first();
+        $data['items'] = OrderItem::where('order_items.order_id', $order)
+            ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
+            ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
+            ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
+            ->get();
         $data['page_title'] = 'Edit Order';
 
         //dd($data);
 
-        return view('admin/orders/edit', $data);
+        return view('admin.orders.edit1', $data);
     }
 
     /**
@@ -728,127 +697,149 @@ class OrderController extends Controller
      * @param  \App\Models\Order  $order
      * @return \Illuminate\Http\Response
      */
+    // public function update(Request $request)
+    // {
+
+    //     if (!empty(Session::get('cart'))) {
+    //         $address = array();
+    //         $carts = Session::get('cart');
+    //         $user = User::where("id", $request->customer)->select(DB::raw("id,name as user_name,email,phone,address_1,address_2,country,state,city,pincode"))->first();
+    //         if (!empty($user->address_1)) {
+    //             $address[] = $user->address_1 . "<br>";
+    //         }
+    //         if (!empty($user->address_2)) {
+    //             $address[] = $user->address_2 . "<br>";
+    //         }
+    //         if (!empty($user->city)) {
+    //             $address[] = $user->citydata->name;
+    //         }
+    //         if (!empty($user->state)) {
+    //             $address[] = $user->statedata->name;
+    //         }
+    //         if (!empty($user->country)) {
+    //             @$address[] = @$user->countrydata->name;
+    //         }
+    //         if (!empty($user->pincode)) {
+    //             $address[] = $user->pincode . "<br>";
+    //         }
+    //         //dd($address);
+    //         $grand_total = 0;
+    //         $items = array();
+    //         $data = array(
+    //             'user_id' => $request->customer,
+    //             'user_name' => $user->user_name,
+    //             'email' => $user->email,
+    //             'phone' => $user->phone,
+    //             'tax' => 0,
+    //             'address' => implode(",", $address),
+    //             'payment_status' => $request->payment_status,
+    //             'status' => $request->status,
+    //             'note' => $request->note,
+    //         );
+    //         foreach ($carts as $cart) {
+
+    //             $price = $cart['service_price'] ? $cart['service_price'] : 0;
+    //             $price = $cart['sale_price'] ? $cart['sale_price'] : $price;
+    //             $total = $price * $cart['quantity'];
+    //             $grand_total += $total;
+    //             $items[] = array(
+    //                 'product_id' => $cart['id'],
+    //                 'item_id' => $cart['item_id'],
+    //                 'price' => $price,
+    //                 'quantity' => $cart['quantity'],
+    //                 'tax' => 0,
+    //                 'total' => $total,
+    //             );
+    //         }
+
+    //         if ($request->order_discount && $request->order_discount > 0) {
+    //             $grand_total -= $request->order_discount;
+    //             $data['order_discount'] = $request->order_discount;
+    //         }
+    //         //dd($grand_total);
+    //         if ($request->shipping && $request->shipping > 0) {
+    //             $grand_total += $request->shipping;
+    //             $data['shipping'] = $request->shipping;
+    //         }
+    //         $data['grand_total'] = $grand_total;
+    //         if ($request->payment_status == "success") {
+    //             $data['paid'] = $grand_total;
+    //         }
+
+    //         $order = Order::where("id", $request->id)->update($data);
+    //         // if(!empty($order)){
+    //         //     OrderItems::where('order_id',$request->id)->delete();
+    //         //     foreach ($items as $item) {
+    //         //         $item['order_id']=$request->id;
+    //         //         OrderItems::create($item);
+    //         //     }                
+    //         // } 
+
+    //         if ($request->status == 'pending') {
+    //             $dataItem = array('status' => 'pending');
+    //         } elseif ($request->status == 'ordered') {
+    //             $dataItem = array('status' => 'ordered');
+    //         } elseif ($request->status == 'processing') {
+    //             $dataItem = array('status' => 'processing');
+    //         } elseif ($request->status == 'delivered') {
+    //             $dataItem = array('status' => 'delivered');
+    //         } elseif ($request->status == 'cancelled') {
+    //             $dataItem = array('status' => 'cancelled');
+    //         } elseif ($request->status == 'shipped') {
+    //             $dataItem = array('status' => 'shipped');
+    //         } elseif ($request->status == 'return') {
+    //             $dataItem = array('status' => 'return_pending');
+    //         } elseif ($request->status == 'return_complete') {
+    //             $dataItem = array('status' => 'return_complete');
+    //         } else {
+    //             $dataItem = array('status' => 'pending');
+    //         }
+
+    //         //dd($dataItem);
+
+    //         $checkEvereyItemCancel = DB::table('order_items')
+    //             ->where('order_id', $request->id)
+    //             // ->where('status', '!=', 'cancelled')
+    //             ->get();
+
+    //         // dd($checkEvereyItemCancel);                        
+    //         if (count($checkEvereyItemCancel) > 0) {
+
+    //             DB::table('order_items')
+    //                 ->where('order_id', $request->id)
+    //                 ->where('status', '!=', 'cancelled')
+    //                 ->update($dataItem);
+    //         }
+
+    //         Session::put('cart', array());
+    //         Session::flash('success', 'Order updated Successfully....');
+    //         return Redirect('admin/order/edit/' . $request->id)->with('message', 'Order updated Successfully...');
+    //     } else {
+    //         Session::flash('user_id', $request->customer);
+    //         Session::flash('success', 'No items selected...');
+    //         return  redirect()->back()->with('error', 'No items selected...');
+    //     }
+    // }
+
     public function update(Request $request)
     {
+        $order = Order::where("id", $request->id)->first();
+        $order->payment_status = $request->payment_status;
+        $model->updated_at = date("Y-m-d H:i:s");
+        $order->save();
 
-        if (!empty(Session::get('cart'))) {
-            $address = array();
-            $carts = Session::get('cart');
-            $user = User::where("id", $request->customer)->select(DB::raw("id,concat(first_name,' ',last_name) as user_name,email,phone,line_1,line_2,country,state,city,zip_code"))->first();
-            if (!empty($user->line_1)) {
-                $address[] = $user->line_1 . "<br>";
-            }
-            if (!empty($user->line_2)) {
-                $address[] = $user->line_2 . "<br>";
-            }
-            if (!empty($user->city)) {
-                $address[] = $user->citydata->name;
-            }
-            if (!empty($user->state)) {
-                $address[] = $user->statedata->name;
-            }
-            if (!empty($user->country)) {
-                @$address[] = @$user->countrydata->name;
-            }
-            if (!empty($user->zip_code)) {
-                $address[] = $user->zip_code . "<br>";
-            }
-            //dd($address);
-            $grand_total = 0;
-            $items = array();
-            $data = array(
-                'user_id' => $request->customer,
-                'user_name' => $user->user_name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'tax' => 0,
-                'address' => implode(",", $address),
-                'payment_status' => $request->payment_status,
-                'status' => $request->status,
-                'note' => $request->note,
-            );
-            foreach ($carts as $cart) {
+        Session::flash('success', 'Order updated Successfully....');
+        return Redirect('admin/order/edit/' . $request->id)->with('message', 'Order updated Successfully...');
+    }
 
-                $price = $cart['service_price'] ? $cart['service_price'] : 0;
-                $price = $cart['sale_price'] ? $cart['sale_price'] : $price;
-                $total = $price * $cart['quantity'];
-                $grand_total += $total;
-                $items[] = array(
-                    'product_id' => $cart['id'],
-                    'item_id' => $cart['item_id'],
-                    'price' => $price,
-                    'quantity' => $cart['quantity'],
-                    'tax' => 0,
-                    'total' => $total,
-                );
-            }
-
-            if ($request->order_discount && $request->order_discount > 0) {
-                $grand_total -= $request->order_discount;
-                $data['order_discount'] = $request->order_discount;
-            }
-            //dd($grand_total);
-            if ($request->shipping && $request->shipping > 0) {
-                $grand_total += $request->shipping;
-                $data['shipping'] = $request->shipping;
-            }
-            $data['grand_total'] = $grand_total;
-            if ($request->payment_status == "success") {
-                $data['paid'] = $grand_total;
-            }
-
-            $order = Order::where("id", $request->id)->update($data);
-            // if(!empty($order)){
-            //     OrderItems::where('order_id',$request->id)->delete();
-            //     foreach ($items as $item) {
-            //         $item['order_id']=$request->id;
-            //         OrderItems::create($item);
-            //     }                
-            // } 
-
-            if ($request->status == 'pending') {
-                $dataItem = array('status' => 'pending');
-            } elseif ($request->status == 'ordered') {
-                $dataItem = array('status' => 'ordered');
-            } elseif ($request->status == 'processing') {
-                $dataItem = array('status' => 'processing');
-            } elseif ($request->status == 'delivered') {
-                $dataItem = array('status' => 'delivered');
-            } elseif ($request->status == 'cancelled') {
-                $dataItem = array('status' => 'cancelled');
-            } elseif ($request->status == 'shipped') {
-                $dataItem = array('status' => 'shipped');
-            } elseif ($request->status == 'return') {
-                $dataItem = array('status' => 'return_pending');
-            } elseif ($request->status == 'return_complete') {
-                $dataItem = array('status' => 'return_complete');
-            } else {
-                $dataItem = array('status' => 'pending');
-            }
-
-            //dd($dataItem);
-
-            $checkEvereyItemCancel = DB::table('order_items')
-                ->where('order_id', $request->id)
-                // ->where('status', '!=', 'cancelled')
-                ->get();
-
-            // dd($checkEvereyItemCancel);                        
-            if (count($checkEvereyItemCancel) > 0) {
-
-                DB::table('order_items')
-                    ->where('order_id', $request->id)
-                    ->where('status', '!=', 'cancelled')
-                    ->update($dataItem);
-            }
-
-            Session::put('cart', array());
-            Session::flash('success', 'Order updated Successfully....');
-            return Redirect('admin/order/edit/' . $request->id)->with('message', 'Order updated Successfully...');
-        } else {
-            Session::flash('user_id', $request->customer);
-            Session::flash('success', 'No items selected...');
-            return  redirect()->back()->with('error', 'No items selected...');
+    public function updateOrderStatus(Request $request)
+    {
+        $model = OrderItem::where("id", $request->item_id)->first();
+        $model->status = $request->status;
+        $model->updated_at = date("Y-m-d H:i:s");
+        if ($model->save()) {
+            Session::flash('success', 'Order Item Status updated Successfully....');
+            return response()->json(['status' => true, 'url' => 'admin/order/edit/' . $request->id]);
         }
     }
 
@@ -990,41 +981,27 @@ class OrderController extends Controller
         $pdf->loadHTML('<h1>Test</h1>');
         return $pdf->stream();
     }
+
     function print_invoice_pdf($order)
     {
-        $slug = Sentinel::getUser()->roles()->first()->slug;
+        $data['order'] = Order::where('id', $order)->first();
+        $data['items'] = OrderItem::where('order_items.order_id', $order)
+            ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
+            ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
+            ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
+            ->get();
+        $offer_list = array();
 
-        if ($slug == 'super_admin') {
-            $data['order'] = Order::where('id', $order)->first();
-            $data['items'] = OrderItems::where('order_items.order_id', $order)
-                ->select(DB::raw("order_items.*,product_items.item_unit as unit, product_items.item_unit_value as unit_value,services.service_name"))
-                ->leftJoin('product_items', 'order_items.item_id', '=', 'product_items.id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->get();
-            $offer_list = array();
+        $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
+            ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name"))
+            ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
+            ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
+            ->get();
+        $data['offer_list'] = $offer_list;
 
-            $offer_list = DB::table('validate_offers')->where('validate_offers.order_id', $order)
-                ->select(DB::raw("offer_products.*,if(services.image,concat('/uploads/service/',services.image),'') as image, services.service_name"))
-                ->leftJoin('offer_products', 'validate_offers.offer_id', '=', 'offer_products.id')
-                ->leftJoin('services', 'offer_products.product_id', '=', 'services.id')
-                ->get();
-            $data['offer_list'] = $offer_list;
-        } else {
-            $users = Sentinel::getUser();
-            $data['order'] = Order::where('orders.id', $order)->select(DB::raw("orders.id as id,orders.order_id as order_id,sum(order_items.total) as grand_total,orders.user_name,orders.email,orders.name,orders.address,orders.address2,orders.phone,orders.status,orders.payment_status,date"))
-                ->whereRaw("services.add_by={$users->id}")
-                ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->groupBy("orders.id")->first();
-            // dd( $data['order']);
-            $data['items'] = OrderItems::where('order_id', $order)
-                ->whereRaw("services.add_by={$users->id}")
-                ->leftJoin('services', 'order_items.product_id', '=', 'services.id')
-                ->get();
-        }
         $data['page_title'] = 'View Order';
         //$html= view('admin/orders/view',$data);
-        $html =  view('admin/orders/pdf', $data)->render();
+        $html =  view('admin.orders.pdf', $data)->render();
         $pdf = App::make('dompdf.wrapper');
 
         $pdf->loadHTML($html);

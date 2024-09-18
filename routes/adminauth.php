@@ -80,6 +80,13 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'],
     Route::get('/attribute_varition_configer/{id}/{varition?}', [ProductController::class, 'attribute_varition_configer'])->name('attribute_varition_configer');
     Route::post('/add_varition', [ProductController::class, 'add_varition'])->name('add_varition');
 
+    Route::get('/complaint', [ProductController::class, 'complaint'])->name('complaint');
+    Route::get('/review', [ProductController::class, 'review'])->name('review');
+    Route::get('/review/{id}', [ProductController::class, 'reviewDetail'])->name('reviewDetail');
+
+    Route::get('/admin/review', "admin\Vendor_Controller@review_list");
+    Route::get('/admin/review/{id}', "admin\Vendor_Controller@review_list_detail");
+
     ///offer product
     Route::get('/offers', [OfferController::class, 'index'])->name('offers');
     Route::get('/offers/status/{id}', [OfferController::class, 'updateStatus'])->name('offers.status');
@@ -109,13 +116,15 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin', 'as' => 'admin.'],
     Route::get('/print_invoice_multiple/{id}', [OrderController::class, 'print_invoice_multiple'])->name('order.print_invoice_multiple');
     Route::get('/print_invoice_items/{id}', [OrderController::class, 'print_invoice_items'])->name('order.print_invoice_items');
     Route::get('/print_invoice_list/{id}', [OrderController::class, 'print_invoice_list'])->name('order.print_invoice_list');
+    Route::get('/print_invoice/{id}', [OrderController::class, 'print_invoice'])->name('order.print_invoice');
     Route::get('/export_order/{id}', [OrderController::class, 'export_order'])->name('order.export_order');
 
     Route::get('/order/create', [OrderController::class, 'create'])->name('order.create');
     Route::post('/order/store', [OrderController::class, 'store'])->name('order.store');
     Route::get('/order/edit/{id}', [OrderController::class, 'edit'])->name('order.edit');
     Route::post('/order/update', [OrderController::class, 'update'])->name('order.update');
-    Route::get('/order/view/{id}', [OrderController::class, 'view'])->name('order.view');
+    Route::post('/order/updateOrderStatus', [OrderController::class, 'updateOrderStatus'])->name('order.updateOrderStatus');
+    Route::get('/order/view/{id}', [OrderController::class, 'show'])->name('order.view');
     Route::get('/order/delete/{id}', [OrderController::class, 'destroy'])->name('order.destroy');
     Route::get('/order/addTocart', [OrderController::class, 'addTocart'])->name('order.addTocart');
     Route::get('/order/removeCart', [OrderController::class, 'removeCart'])->name('order.removeCart');
